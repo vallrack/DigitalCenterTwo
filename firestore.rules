@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Regla por Defecto: Denegar todo acceso ---
+    // Esto asegura que ninguna colección sea accesible a menos que se permita explícitamente.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Regla para Mensajes de Contacto (Público) ---
+    // Permite que CUALQUIERA (incluidos los visitantes no autenticados) cree un mensaje.
+    // La lectura y modificación siguen denegadas por la regla por defecto.
+    match /contactMessages/{messageId} {
+      allow create: if true;
+    }
+
+    // --- Regla para Salas de Chat ---
+    // Solo los miembros de la sala pueden leer, escribir o ver los mensajes.
+    match /chatRooms/{roomId} {
+      allow get: if request.auth != null && request.auth.uid in resource.data.memberIds;
+      allow list: if request.auth != null; // Permite la consulta inicial, que se filtra en la app.
+      
+      match /messages/{messageId} {
+        allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.memberIds;
+      }
+    }
+
+    // --- Reglas Generales para Usuarios Autenticados ---
+    // Permite leer y escribir en estas colecciones solo si el usuario ha iniciado sesión.
+    // La lógica de la aplicación se encarga de filtrar para que solo vean los datos de su organización.
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+    match /employees/{employeeId} {
+      allow read, write: if request.auth != null;
+    }
+    match /organizations/{orgId} {
+      allow read, write: if request.auth != null;
+    }
+    match /students/{studentId} {
+      allow read, write: if request.auth != null;
+    }
+    match /subjects/{subjectId} {
+      allow read, write: if request.auth != null;
+    }
+    match /schedules/{scheduleId} {
+      allow read, write: if request.auth != null;
+    }
+    match /lessonPlans/{planId} {
+      allow read, write: if request.auth != null;
+    }
+    match /invoices/{invoiceId} {
+      allow read, write: if request.auth != null;
+    }
+    match /bills/{billId} {
+      allow read, write: if request.auth != null;
+    }
+    match /videoRecordings/{recordingId} {
+      allow read, write: if request.auth != null;
+    }
+    match /grades/{gradeId} {
+      allow read, write: if request.auth != null;
+    }
+    match /studentAttendance/{attendanceId} {
+      allow read, write: if request.auth != null;
+    }
+    match /academicPeriods/{periodId} {
+      allow read, write: if request.auth != null;
+    }
+    match /gradeTypes/{typeId} {
+      allow read, write: if request.auth != null;
+    }
+    match /gradingScales/{scaleId} {
+      allow read, write: if request.auth != null;
+    }
+    match /systemSettings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
+    match /chartOfAccounts/{accountId} {
+      allow read, write: if request.auth != null;
+    }
+    match /journalEntries/{entryId} {
+      allow read, write: if request.auth != null;
+    }
+    match /products/{productId} {
+      allow read, write: if request.auth != null;
+    }
+    match /sales/{saleId} {
+      allow read, write: if request.auth != null;
+    }
+    match /warehouses/{warehouseId} {
+      allow read, write: if request.auth != null;
+    }
+    match /stockTransfers/{transferId} {
+      allow read, write: if request.auth != null;
+    }
+    match /payrolls/{payrollId} {
+      allow read, write: if request.auth != null;
+    }
+    match /attendance/{attendanceId} {
+      allow read, write: if request.auth != null;
+    }
+    match /activeSessions/{sessionId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
