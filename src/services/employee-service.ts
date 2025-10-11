@@ -10,7 +10,6 @@ import {
   query,
   orderBy,
   getDoc,
-  setDoc,
   where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -18,11 +17,30 @@ import type { Employee, UserProfile } from '@/lib/types';
 
 const employeesCollection = collection(db, 'employees');
 
-// CREATE an employee (typically done via user creation now)
-export const addEmployee = async (employeeData: Omit<Employee, 'id'>) => {
+// CREATE an employee (securely enforcing multi-tenancy)
+export const addEmployee = async (
+  employeeData: Omit<Employee, 'id' | 'organizationId'>,
+  userProfile: UserProfile
+) => {
   try {
+    const organizationId = userProfile.organizationId;
+
+    if (!organizationId && userProfile.role !== 'SuperAdmin') {
+      throw new Error('User does not belong to an organization.');
+    }
+    
+    // For SuperAdmin, the organizationId must be provided in the employeeData
+    const finalOrganizationId = userProfile.role === 'SuperAdmin' 
+      ? (employeeData as any).organizationId 
+      : organizationId;
+
+    if (!finalOrganizationId) {
+        throw new Error('Organization ID is required to create an employee.');
+    }
+
     const docRef = await addDoc(employeesCollection, {
       ...employeeData,
+      organizationId: finalOrganizationId, // Ensure organizationId is set
       createdAt: serverTimestamp(),
     });
     return docRef.id;
@@ -41,10 +59,10 @@ export const getEmployees = async (userProfile: UserProfile | null): Promise<Emp
     if (userProfile.role === 'SuperAdmin') {
       q = query(employeesCollection, orderBy('name', 'asc'));
     } else if (userProfile.organizationId) {
-      // Query only by organizationId to avoid composite index requirement
       q = query(
         employeesCollection,
-        where('organizationId', '==', userProfile.organizationId)
+        where('organizationId', '==', userProfile.organizationId),
+        orderBy('name', 'asc')
       );
     } else {
       return []; // No organization, no employees
@@ -55,11 +73,6 @@ export const getEmployees = async (userProfile: UserProfile | null): Promise<Emp
         id: doc.id,
         ...(doc.data() as Omit<Employee, 'id'>),
     }));
-
-    // If it wasn't a SuperAdmin query, sort the results client-side
-    if (userProfile.role !== 'SuperAdmin') {
-        employeeList.sort((a, b) => a.name.localeCompare(b.name));
-    }
 
     return employeeList;
   } catch (error) {

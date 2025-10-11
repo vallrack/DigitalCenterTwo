@@ -24,6 +24,7 @@ import {
   AreaChart,
   UserSquare,
   Mail,
+  Leaf,
 } from 'lucide-react';
 
 import {
@@ -76,6 +77,7 @@ const allNavLinks: NavLink[] = [
   { href: '/finance', label: 'Finanzas', icon: DollarSign, requiredModule: 'finance', roles: ['Admin', 'Finanzas', 'SuperAdmin'] },
   { href: '/inventory', label: 'Inventario', icon: Archive, requiredModule: 'inventory', roles: ['Admin', 'SuperAdmin'] },
   { href: '/sales', label: 'Ventas (POS)', icon: ShoppingCart, requiredModule: 'sales', roles: ['Admin', 'Ventas', 'SuperAdmin'] },
+  { href: '/caficultores', label: 'Gestion Caficultores', icon: Leaf },
   { href: '/communications', label: 'Comunicaciones', icon: Mail, requiredModule: 'communications', roles: ['Admin', 'Ventas', 'Marketing', 'SuperAdmin'] },
   { href: '/reports', label: 'Reportes', icon: AreaChart, requiredModule: 'reports', roles: ['Admin', 'Finanzas', 'SuperAdmin'] },
 ];

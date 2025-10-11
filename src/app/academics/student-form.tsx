@@ -1,7 +1,7 @@
 // /src/app/academics/student-form.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,15 +27,18 @@ import { useAuth } from '@/hooks/use-auth';
 import type { Student, Organization } from '@/lib/types';
 import { addStudent, updateStudent } from '@/services/student-service';
 
-const formSchema = z.object({
+// Base schema without organizationId
+const baseSchema = z.object({
   name: z.string().min(2, 'El nombre es requerido'),
-  email: z.string().email('Correo electrónico inválido'),
+  email: z.string().email('Correo electrónico inválido').optional().or(z.literal('')),
   grade: z.string().min(1, 'El grado es requerido'),
   status: z.enum(['Active', 'Inactive']),
-  organizationId: z.string().min(1, 'La organización es requerida'),
 });
 
-type StudentFormValues = z.infer<typeof formSchema>;
+// Schema for SuperAdmins, requiring organizationId
+const superAdminSchema = baseSchema.extend({
+  organizationId: z.string().min(1, 'La organización es requerida'),
+});
 
 interface StudentFormProps {
   student?: Student | null;
@@ -48,6 +51,10 @@ export function StudentForm({ student, organizations, onSuccess }: StudentFormPr
   const { userProfile } = useAuth();
   const isSuperAdmin = userProfile?.role === 'SuperAdmin';
 
+  // Dynamically choose the schema based on the user's role
+  const formSchema = isSuperAdmin ? superAdminSchema : baseSchema;
+  type StudentFormValues = z.infer<typeof formSchema>;
+
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,36 +62,44 @@ export function StudentForm({ student, organizations, onSuccess }: StudentFormPr
       email: student?.email || '',
       grade: student?.grade || '',
       status: student?.status || 'Active',
-      organizationId: student?.organizationId || userProfile?.organizationId || '',
+      ...(isSuperAdmin && { organizationId: student?.organizationId || '' }),
     },
   });
 
   useEffect(() => {
-    // This ensures the form resets correctly when the selected student changes
+    const defaultOrgId = isSuperAdmin ? student?.organizationId || '' : undefined;
     form.reset({
       name: student?.name || '',
       email: student?.email || '',
       grade: student?.grade || '',
       status: student?.status || 'Active',
-      organizationId: student?.organizationId || userProfile?.organizationId || '',
+      ...(isSuperAdmin && { organizationId: defaultOrgId }),
     });
-  }, [student, userProfile, form]);
+  }, [student, isSuperAdmin, form]);
 
   const onSubmit = async (data: StudentFormValues) => {
+    if (!userProfile) {
+      toast({ title: 'Error', description: 'Perfil de usuario no encontrado.', variant: 'destructive' });
+      return;
+    }
+
     try {
       if (student) {
-        await updateStudent(student.id, data);
+        // Pass userProfile to updateStudent for logging purposes
+        await updateStudent(student.id, data, userProfile);
         toast({ title: 'Éxito', description: 'Estudiante actualizado correctamente.' });
       } else {
-        await addStudent(data);
+        // For creating, pass the userProfile to the service function
+        await addStudent(data, userProfile);
         toast({ title: 'Éxito', description: 'Estudiante creado correctamente.' });
       }
       onSuccess();
     } catch (error) {
       console.error('Error saving student:', error);
+      const errorMessage = error instanceof Error ? error.message : 'No se pudo guardar el estudiante.';
       toast({
         title: 'Error',
-        description: 'No se pudo guardar el estudiante.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

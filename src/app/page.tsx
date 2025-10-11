@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BookOpen, DollarSign, Users, GraduationCap, Archive, ShoppingCart, AreaChart, Loader2, Mail, UserSquare, Shield, Menu, UserPlus } from 'lucide-react';
+import { Check, BookOpen, DollarSign, Users, GraduationCap, Archive, ShoppingCart, AreaChart, Loader2, Mail, UserSquare, Shield, Menu, UserPlus, Leaf } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +21,6 @@ import { ContactWidget } from '@/components/contact-widget';
 import { FeaturesCarousel } from './features-carousel';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-// Este es el array que contiene la información de las imágenes del carrusel.
 const features = [
   {
     icon: UserPlus,
@@ -82,6 +81,12 @@ const features = [
     title: 'Administración y Seguridad',
     description: 'Gestión centralizada de clientes y usuarios.',
     imageUrl: 'https://png.pngtree.com/png-clipart/20240817/original/pngtree-digital-paint-illustration-of-padlock-in-a-cyber-world-png-image_15791680.png'
+  },
+  {
+    icon: Leaf,
+    title: 'Gestión de Caficultores',
+    description: 'Administra lotes, cultivos y trazabilidad del café.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/granos-de-cafe-en-un-recipiente-con-cuchara-3d-icon-png-download-12027615.png'
   }
 ];
 

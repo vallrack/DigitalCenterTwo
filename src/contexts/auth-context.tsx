@@ -4,7 +4,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import Image from "next/image";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
 import type { UserProfile, Organization, UserRole } from "@/lib/types";
@@ -20,9 +20,10 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   organization: Organization | null;
+  loading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType>({ user: null, userProfile: null, organization: null });
+export const AuthContext = createContext<AuthContextType>({ user: null, userProfile: null, organization: null, loading: true });
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -33,7 +34,7 @@ const blockingRoutes = ["/pending-approval", "/cancelled-account", "/subscriptio
 const essentialRoutes = ["/settings"]; // Routes accessible even when password change is forced
 
 const routesByRole: Record<UserRole, string[]> = {
-    'SuperAdmin': ['/dashboard', '/admin', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/student-portal', '/communications'],
+    'SuperAdmin': ['/dashboard', '/admin', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/student-portal', '/communications', '/caficultores'],
     'Admin': ['/dashboard', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/communications'],
     'Ventas': ['/dashboard', '/customers', '/sales', '/settings', '/communications'],
     'Academico': ['/dashboard', '/academics', '/settings'],
@@ -48,7 +49,6 @@ const routesByRole: Record<UserRole, string[]> = {
     'Cancelled': ['/cancelled-account'],
 };
 
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -60,78 +60,75 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
+      
       if (firebaseUser) {
-        setUser(firebaseUser);
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
 
-        let profile: UserProfile | null = null;
-        if (userDoc.exists()) {
-            profile = userDoc.data() as UserProfile;
+          if (userDoc.exists()) {
+            let profile = userDoc.data() as UserProfile;
 
-             if (process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL && firebaseUser.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) {
-                if (profile && profile.role !== 'SuperAdmin') {
-                  profile.role = 'SuperAdmin';
-                  await updateDoc(userDocRef, { role: 'SuperAdmin' });
-                }
+            // Ensure SuperAdmin role if email matches
+            if (process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL && firebaseUser.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL && profile.role !== 'SuperAdmin') {
+              profile.role = 'SuperAdmin';
+              await updateDoc(userDocRef, { role: 'SuperAdmin' });
+            }
+
+            let org: Organization | null = null;
+            if (profile.role !== 'SuperAdmin' && profile.organizationId) {
+              const orgDocRef = doc(db, 'organizations', profile.organizationId);
+              const orgDoc = await getDoc(orgDocRef);
+              if (orgDoc.exists()) {
+                org = { id: orgDoc.id, ...orgDoc.data() } as Organization;
+              } else {
+                console.warn(`Organization document ${profile.organizationId} not found.`);
+              }
             }
             
+            setUser(firebaseUser);
             setUserProfile(profile);
-
-            let orgName = 'N/A';
-            if (profile.organizationId) {
-                const orgDocRef = doc(db, 'organizations', profile.organizationId);
-                const orgDoc = await getDoc(orgDocRef);
-                if (orgDoc.exists()) {
-                    const orgData = { id: orgDoc.id, ...orgDoc.data() } as Organization;
-                    setOrganization(orgData);
-                    orgName = orgData.name;
-                } else {
-                    console.warn(`Organization document ${profile.organizationId} not found.`);
-                    setOrganization(null);
-                }
-            } else {
-                setOrganization(null); 
-            }
+            setOrganization(org);
 
             updateUserPresence(firebaseUser.uid, {
                 userName: profile.name,
                 role: profile.role,
-                organizationId: profile.organizationId || null,
-                organizationName: orgName,
+                organizationId: org?.id || null,
+                organizationName: org?.name || (profile.role === 'SuperAdmin' ? 'Super Admin' : 'N/A'),
             });
 
-        } else {
-          console.warn(`User ${firebaseUser.uid} exists in Auth but not in Firestore. Forcing logout.`);
-          await signOut(auth);
-          setUser(null);
-          setUserProfile(null);
-          setOrganization(null);
-          toast({
-            title: "Cuenta no encontrada",
-            description: "Tu perfil de usuario ya no existe. Si es un error, contacta a soporte.",
-            variant: "destructive",
-          });
+          } else {
+            console.warn(`User ${firebaseUser.uid} exists in Auth but not in Firestore. Forcing logout.`);
+            toast({
+              title: "Cuenta no encontrada",
+              description: "Tu perfil de usuario ya no existe. Si es un error, contacta a soporte.",
+              variant: "destructive",
+            });
+            await signOut(auth); // This will re-trigger the listener with a null user
+          }
+        } catch (error) {
+            console.error("Error during auth state processing:", error);
+            await signOut(auth);
+        } finally {
+          setLoading(false);
         }
       } else {
         setUser(null);
         setUserProfile(null);
         setOrganization(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, [toast]);
 
   useEffect(() => {
-    if (loading) {
-        return; 
-    }
+    if (loading) return;
 
     const isPublicRoute = publicRoutes.some(route => pathname === route) || pathname.startsWith('/o/');
-    const isEssentialRoute = essentialRoutes.includes(pathname);
-
+    
     if (!user) {
         if (!isPublicRoute) {
             router.replace('/login');
@@ -139,49 +136,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
     }
 
-    if (!userProfile) {
-        return;
-    }
+    if (!userProfile) return;
 
-    // Block access if organization subscription is invalid
-    if (organization && userProfile.role !== 'SuperAdmin') {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to beginning of the day
-
-        const subEndDate = new Date(organization.subscriptionEnds);
-        const timezoneOffset = subEndDate.getTimezoneOffset() * 60000;
-        const adjustedSubEndDate = new Date(subEndDate.getTime() + timezoneOffset);
-
-        const isExpired = adjustedSubEndDate < today;
-        const isCancelled = organization.contractStatus === 'Cancelled';
-
-        if ((isExpired || isCancelled) && pathname !== '/subscription-expired') {
-            console.warn(`Blocking access for org ${organization.id} due to subscription status: ${organization.contractStatus}, ends: ${organization.subscriptionEnds}`);
-            router.replace('/subscription-expired');
-            return; // Stop further routing logic
-        }
-    }
-    
     if (userProfile.status === 'cancelled') {
-        if (pathname !== '/cancelled-account') {
-            router.replace('/cancelled-account');
-        }
+        if (pathname !== '/cancelled-account') router.replace('/cancelled-account');
         return;
     }
 
     if (userProfile.role === 'EnEspera' || userProfile.role === 'SinAsignar') {
-        if (pathname !== '/pending-approval') {
-            router.replace('/pending-approval');
-        }
+        if (pathname !== '/pending-approval') router.replace('/pending-approval');
         return;
     }
 
+    if (organization && userProfile.role !== 'SuperAdmin') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const subEndDate = new Date(organization.subscriptionEnds);
+        const timezoneOffset = subEndDate.getTimezoneOffset() * 60000;
+        const adjustedSubEndDate = new Date(subEndDate.getTime() + timezoneOffset);
+        const isExpired = adjustedSubEndDate < today;
+        const isCancelled = organization.contractStatus === 'Cancelled';
+
+        if ((isExpired || isCancelled) && pathname !== '/subscription-expired') {
+            router.replace('/subscription-expired');
+            return;
+        }
+    }
+    
     const isCurrentlyOnBlockingRoute = blockingRoutes.includes(pathname);
     if (isPublicRoute && !isCurrentlyOnBlockingRoute) {
       router.replace('/dashboard');
       return;
     }
     
+    const isEssentialRoute = essentialRoutes.includes(pathname);
     if (userProfile.forcePasswordChange && !isEssentialRoute) {
         router.replace("/settings");
         return;
@@ -190,8 +178,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const allowedRoutes = routesByRole[userProfile.role] || [];
     const isAllowed = allowedRoutes.some(route => pathname.startsWith(route));
     
-    if (!isCurrentlyOnBlockingRoute && !isAllowed) {
-        console.warn(`Redirecting: User with role ${userProfile.role} not allowed to access ${pathname}. Redirecting to /dashboard.`);
+    if (!isPublicRoute && !isAllowed && !isEssentialRoute) {
+        console.warn(`Redirecting: User with role ${userProfile.role} not allowed to access ${pathname}.`);
         router.replace("/dashboard");
     }
 
@@ -199,7 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const isPublicPage = publicRoutes.some(route => pathname === route) || pathname.startsWith('/o/');
 
-  if (loading || (!user && !isPublicPage)) {
+  if (loading && !isPublicPage) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
         <div className="flex items-center gap-2">
@@ -225,7 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) : undefined;
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, organization }}>
+    <AuthContext.Provider value={{ user, userProfile, organization, loading }}>
       <AppContent headerAlert={passwordChangeAlert}>
         {children}
       </AppContent>

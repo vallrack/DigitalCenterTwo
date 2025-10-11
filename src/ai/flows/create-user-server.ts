@@ -10,6 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { db, auth } from '@/lib/firebase-admin';
 import type { UserProfile, Employee, UserRole } from '@/lib/types';
+import { addEmployee } from '@/services/employee-service'; // Import the centralized function
 
 const CreateUserInputSchema = z.object({
   name: z.string(),
@@ -62,39 +63,38 @@ const createNewUserServerFlow = ai.defineFlow(
       };
       const userDocRef = db.collection('users').doc(uid);
       batch.set(userDocRef, newProfile);
+      await batch.commit(); // Commit the user profile first
 
-      // 3. If the role is an employee type, create an Employee document
+      // 3. If the role is an employee type, use the service to create the Employee document
       const isEmployeeRole = !['Admin', 'SuperAdmin', 'Estudiante', 'EnEspera', 'SinAsignar'].includes(data.role);
 
       if (isEmployeeRole) {
-        const newEmployee: Omit<Employee, 'id'> = {
+        // Prepare the employee data, but exclude organizationId as the service will handle it
+        const employeeData: Omit<Employee, 'id' | 'organizationId'> = {
           name: data.name,
           email: data.email,
           position: data.position || 'No Asignado',
           role: data.role as UserRole,
-          status: 'Active',
+          status: 'Active', // Default status
           salary: data.salary || 0,
           contractedHours: data.contractedHours || 160,
           avatarUrl: newProfile.avatarUrl,
-          organizationId: newProfile.organizationId,
           bankName: data.bankName || '',
           accountNumber: data.accountNumber || '',
           eps: data.eps || '',
           arl: data.arl || '',
           createdAt: new Date(),
+          uid: uid, // Associate employee with user uid
         };
-        const employeeDocRef = db.collection('employees').doc(uid);
-        batch.set(employeeDocRef, newEmployee);
+        
+        // The `newProfile` object fulfills the `UserProfile` requirement of the secure `addEmployee` function.
+        await addEmployee(employeeData, newProfile);
       }
-
-      // 4. Commit all database operations
-      await batch.commit();
 
       return { uid };
 
     } catch (error: any) {
       console.error('Error creating user on server:', error);
-      // Return a structured error response
       return { error: error.code || error.message || 'An unknown error occurred.' };
     }
   }

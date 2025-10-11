@@ -50,7 +50,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
-import type { Student, Organization } from '@/lib/types';
+import type { Student, Organization, UserProfile } from '@/lib/types';
 import { getStudents, deleteStudent } from '@/services/student-service';
 import { getOrganizations } from '@/services/organization-service';
 import { StudentForm } from './student-form';
@@ -115,9 +115,12 @@ export const StudentsListClient = memo(() => {
   }, []);
 
   const handleDeleteConfirm = useCallback(async () => {
-    if (!studentToDelete) return;
+    if (!studentToDelete || !userProfile) {
+        toast({ title: 'Error', description: 'No se puede eliminar el estudiante sin un perfil de usuario.', variant: 'destructive' });
+        return;
+    };
     try {
-      await deleteStudent(studentToDelete);
+      await deleteStudent(studentToDelete, userProfile);
       toast({ title: 'Éxito', description: 'Estudiante eliminado correctamente.' });
       fetchData();
     } catch (error) {
@@ -126,7 +129,7 @@ export const StudentsListClient = memo(() => {
       setIsDeleteDialogOpen(false);
       setStudentToDelete(null);
     }
-  }, [studentToDelete, toast, fetchData]);
+  }, [studentToDelete, userProfile, toast, fetchData]);
 
   const openDeleteDialog = useCallback((studentId: string) => {
     setStudentToDelete(studentId);

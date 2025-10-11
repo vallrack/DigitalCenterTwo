@@ -6,9 +6,11 @@ import Link from "next/link"
 import {
   Bell,
   BookOpen,
+  ChevronDown,
   DollarSign,
   GraduationCap,
   LayoutDashboard,
+  Leaf,
   LogOut,
   Search,
   Settings,
@@ -24,6 +26,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
@@ -39,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 // You can find all the icons here: https://lucide.dev/
 const navLinks = [
@@ -47,9 +53,16 @@ const navLinks = [
   { href: "/hr", label: "Recursos Humanos", icon: Users },
   { href: "/academics", label: "Gestión Académica", icon: BookOpen },
   { href: "/finance", label: "Finanzas", icon: DollarSign },
+  { href: "/caficultores", label: "Gestion Caficultores", icon: Leaf },
 ]
 
 export default function SidebarPage() {
+  const [openSubmenus, setOpenSubmenus] = React.useState<Record<string, boolean>>({})
+
+  const toggleSubmenu = (id: string) => {
+    setOpenSubmenus((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -64,20 +77,53 @@ export default function SidebarPage() {
         <SidebarContent>
           <SidebarGroup>
             <SidebarMenu>
-              {navLinks.map(({ href, label, icon: Icon }) => (
-                <SidebarMenuItem key={href}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={{ children: label }}
-                    className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
-                  >
-                    <Link href={href}>
-                      <Icon />
-                      {label}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {navLinks.map((link) =>
+                link.subItems ? (
+                  <SidebarMenuItem key={link.id} className="flex flex-col">
+                    <SidebarMenuButton
+                      onClick={() => toggleSubmenu(link.id)}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <link.icon />
+                        <span>{link.label}</span>
+                      </div>
+                      <ChevronDown
+                        className={cn(
+                          "transition-transform",
+                          openSubmenus[link.id] && "rotate-180"
+                        )}
+                      />
+                    </SidebarMenuButton>
+                    {openSubmenus[link.id] && (
+                      <SidebarMenuSub>
+                        {link.subItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.href}>
+                             <Link href={subItem.href} passHref legacyBehavior>
+                                <SidebarMenuSubButton>
+                                    {subItem.label}
+                                </SidebarMenuSubButton>
+                            </Link>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    )}
+                  </SidebarMenuItem>
+                ) : (
+                  <SidebarMenuItem key={link.href}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={{ children: link.label }}
+                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
+                    >
+                      <Link href={link.href}>
+                        <link.icon />
+                        {link.label}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              )}
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>

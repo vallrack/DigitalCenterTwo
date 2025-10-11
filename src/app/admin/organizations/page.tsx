@@ -11,6 +11,7 @@ import { OrganizationsClient } from './organizations-client';
 import { OrganizationCustomizationForm } from './organization-customization-form';
 import { UsersClient } from '../users/users-client';
 import { LiveActivityClient } from './live-activity-client';
+import { ActivityFeedClient } from '../activity-feed-client';
 import { DeletedUsersClient } from '../deleted-users/deleted-users-client';
 import { SettingsClient } from '../settings/settings-client';
 import { ProspectsClient } from '../prospects/prospects-client';
@@ -19,8 +20,6 @@ import { useAuth } from '@/hooks/use-auth';
 export default function AdminPage() {
   const { userProfile } = useAuth();
   
-  // Render nothing or a loading state until the profile is loaded.
-  // This prevents rendering content for a role that might change.
   if (!userProfile) {
     return null; 
   }
@@ -56,7 +55,10 @@ export default function AdminPage() {
           <OrganizationCustomizationForm />
         </TabsContent>
         <TabsContent value="live-activity">
-          <LiveActivityClient />
+          <div className="space-y-6">
+            <LiveActivityClient />
+            <ActivityFeedClient />
+          </div>
         </TabsContent>
         <TabsContent value="settings">
           <SettingsClient />

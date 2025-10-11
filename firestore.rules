@@ -3,105 +3,90 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Regla por Defecto: Denegar todo acceso ---
-    // Esto asegura que ninguna colección sea accesible a menos que se permita explícitamente.
+    // --- Helper Functions ---
+
+    // Obtiene el documento de perfil del usuario que realiza la solicitud.
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Verifica si el rol del usuario es 'SuperAdmin'.
+    function isSuperAdmin() {
+      return getUserProfile().data.role == 'SuperAdmin';
+    }
+
+    // Verifica si el orgId del usuario coincide con el orgId del documento que se está accediendo.
+    // Se usa para operaciones de lectura, actualización y eliminación.
+    function isMemberOfDocOrg() {
+      return getUserProfile().data.orgId == resource.data.orgId;
+    }
+
+    // Verifica si el orgId del usuario coincide con el orgId del documento que se está creando.
+    // Se usa para operaciones de creación.
+    function isMemberOfRequestOrg() {
+      return getUserProfile().data.orgId == request.resource.data.orgId;
+    }
+
+    // --- Default Rule: Deny all access ---
+    // Ensures no collection is accessible unless explicitly allowed.
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // --- Regla para Mensajes de Contacto (Público) ---
-    // Permite que CUALQUIERA (incluidos los visitantes no autenticados) cree un mensaje.
-    // La lectura y modificación siguen denegadas por la regla por defecto.
+    // --- Public & Guest Access ---
+
+    // Allows ANYONE (including unauthenticated visitors) to create a contact message.
     match /contactMessages/{messageId} {
       allow create: if true;
     }
 
-    // --- Regla para Salas de Chat ---
-    // Solo los miembros de la sala pueden leer, escribir o ver los mensajes.
+    // Allows authenticated members of a chat room to interact with it.
     match /chatRooms/{roomId} {
       allow get: if request.auth != null && request.auth.uid in resource.data.memberIds;
-      allow list: if request.auth != null; // Permite la consulta inicial, que se filtra en la app.
-      
+      allow list: if request.auth != null; // Initial query is allowed, then filtered in the app.
+
       match /messages/{messageId} {
         allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.memberIds;
       }
     }
 
-    // --- Reglas Generales para Usuarios Autenticados ---
-    // Permite leer y escribir en estas colecciones solo si el usuario ha iniciado sesión.
-    // La lógica de la aplicación se encarga de filtrar para que solo vean los datos de su organización.
+    // --- User & Organization Management ---
+
+    // Users can read their own profile. SuperAdmins can read any profile.
+    // Users can update their own profile. SuperAdmins can update any profile.
     match /users/{userId} {
-      allow read, write: if request.auth != null;
+      allow get: if request.auth.uid == userId || isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow update: if request.auth.uid == userId || isSuperAdmin();
+      // Create is handled by server-side logic (Genkit flows), not direct client writes.
     }
-    match /employees/{employeeId} {
-      allow read, write: if request.auth != null;
-    }
+
+    // SuperAdmins can manage all organizations.
+    // Authenticated users can read their own organization's document.
     match /organizations/{orgId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSuperAdmin();
+      allow get: if request.auth != null && getUserProfile().data.orgId == orgId;
     }
-    match /students/{studentId} {
-      allow read, write: if request.auth != null;
+    
+    // --- Organization-Specific Data Collections ---
+    // This single rule block protects all collections that store tenant data.
+    // It ensures that a user can only access data belonging to their own organization.
+    match /employees/{docId} | /students/{docId} | /subjects/{docId} | /schedules/{docId} | /lessonPlans/{docId} | /invoices/{docId} | /bills/{docId} | /videoRecordings/{docId} | /grades/{docId} | /studentAttendance/{docId} | /academicPeriods/{docId} | /gradeTypes/{docId} | /gradingScales/{docId} | /chartOfAccounts/{docId} | /journalEntries/{docId} | /products/{docId} | /sales/{docId} | /warehouses/{docId} | /stockTransfers/{docId} | /payrolls/{docId} | /attendance/{docId} {
+      allow read, delete: if request.auth != null && (isMemberOfDocOrg() || isSuperAdmin());
+      allow create: if request.auth != null && (isMemberOfRequestOrg() || isSuperAdmin());
+      allow update: if request.auth != null && (isMemberOfDocOrg() || isSuperAdmin());
     }
-    match /subjects/{subjectId} {
-      allow read, write: if request.auth != null;
-    }
-    match /schedules/{scheduleId} {
-      allow read, write: if request.auth != null;
-    }
-    match /lessonPlans/{planId} {
-      allow read, write: if request.auth != null;
-    }
-    match /invoices/{invoiceId} {
-      allow read, write: if request.auth != null;
-    }
-    match /bills/{billId} {
-      allow read, write: if request.auth != null;
-    }
-    match /videoRecordings/{recordingId} {
-      allow read, write: if request.auth != null;
-    }
-    match /grades/{gradeId} {
-      allow read, write: if request.auth != null;
-    }
-    match /studentAttendance/{attendanceId} {
-      allow read, write: if request.auth != null;
-    }
-    match /academicPeriods/{periodId} {
-      allow read, write: if request.auth != null;
-    }
-    match /gradeTypes/{typeId} {
-      allow read, write: if request.auth != null;
-    }
-    match /gradingScales/{scaleId} {
-      allow read, write: if request.auth != null;
-    }
+
+    // --- Global & System Collections ---
+
+    // System settings are readable by any authenticated user but only writable by SuperAdmins.
     match /systemSettings/{settingId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
     }
-    match /chartOfAccounts/{accountId} {
-      allow read, write: if request.auth != null;
-    }
-    match /journalEntries/{entryId} {
-      allow read, write: if request.auth != null;
-    }
-    match /products/{productId} {
-      allow read, write: if request.auth != null;
-    }
-    match /sales/{saleId} {
-      allow read, write: if request.auth != null;
-    }
-    match /warehouses/{warehouseId} {
-      allow read, write: if request.auth != null;
-    }
-    match /stockTransfers/{transferId} {
-      allow read, write: if request.auth != null;
-    }
-    match /payrolls/{payrollId} {
-      allow read, write: if request.auth != null;
-    }
-    match /attendance/{attendanceId} {
-      allow read, write: if request.auth != null;
-    }
+    
+    // Active sessions might not be org-specific. Review if this needs multi-tenancy.
+    // For now, keeping original logic: only authenticated users.
     match /activeSessions/{sessionId} {
       allow read, write: if request.auth != null;
     }
