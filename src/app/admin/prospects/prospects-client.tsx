@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
@@ -175,15 +176,15 @@ export const ProspectsClient = memo(() => {
                             selectedOrg.modules[module.id] && (
                                 <Badge key={module.id} variant="secondary">{module.label}</Badge>
                             )
-                        ))}
+                        ))}\
                         </div>
                     </div>
                 </div>
-            )}
+            )}\
              <SheetFooter>
                 <Button variant="outline" onClick={() => setIsSheetOpen(false)}>Cancelar</Button>
                 <Button onClick={handleApprove} disabled={isApproving}>
-                    {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                    {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}\
                     <UserCheck className="mr-2 h-4 w-4"/>
                     Aprobar y Activar Prueba de 15 Días
                 </Button>

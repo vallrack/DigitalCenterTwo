@@ -94,7 +94,7 @@ const AnalysisClient = () => {
       if (result.data && result.data.length > 0) {
         const keys = Object.keys(result.data[0]);
         setFilterColumn(keys[0] || '');
-        const firstNumericCol = keys.find(key => result.data.some((row: any) => row[key] !== null && !isNaN(parseFloat(row[key]))));
+        const firstNumericCol = keys.find(key => key.toLowerCase() !== 'fecha' && result.data.some((row: any) => row[key] !== null && !isNaN(parseFloat(row[key]))));
         setMetricColumn(firstNumericCol || '');
         const firstCategoricalCol = keys.find(key => result.data.some((row: any) => row[key] !== null && isNaN(parseFloat(row[key]))));
         setGroupingColumn(firstCategoricalCol || '');
@@ -113,13 +113,16 @@ const AnalysisClient = () => {
   }, [data]);
 
   const numericHeaders = useMemo(() => {
-    if (!data || data.length === 0) return [];
-    return headers.filter(header => data.some(row => row[header] !== null && !isNaN(parseFloat(row[header]))));
+      if (!data || data.length === 0) return [];
+      return headers.filter(header => 
+          header.toLowerCase() !== 'fecha' && 
+          data.every(row => row[header] === null || (typeof row[header] === 'string' && row[header].trim() === '') || !isNaN(parseFloat(row[header])))
+      );
   }, [data, headers]);
 
   const categoricalHeaders = useMemo(() => {
-    if (!data || data.length === 0) return [];
-    return headers.filter(header => !numericHeaders.includes(header));
+      if (!data || data.length === 0) return [];
+      return headers.filter(header => !numericHeaders.includes(header));
   }, [data, headers, numericHeaders]);
 
   const filteredData = useMemo(() => {
