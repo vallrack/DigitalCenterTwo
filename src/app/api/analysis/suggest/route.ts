@@ -1,4 +1,3 @@
-'''
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
@@ -55,4 +54,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ocurrió un error en el servidor al generar la sugerencia.' }, { status: 500 });
   }
 }
-'''
