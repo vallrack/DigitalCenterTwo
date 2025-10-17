@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, Sparkles, Loader2 } from 'lucide-react';
 
 const AnalysisClient = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -22,6 +22,11 @@ const AnalysisClient = () => {
   const [metricColumn, setMetricColumn] = useState<string>('');
   const [metricType, setMetricType] = useState<'sum' | 'average' | 'count'>('sum');
   const [groupingColumn, setGroupingColumn] = useState<string>('');
+  
+  // AI Assistant State
+  const [suggestion, setSuggestion] = useState<string>('');
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestionError, setSuggestionError] = useState<string | null>(null);
 
   const handleFileSelect = (selectedFile: File | undefined) => {
     if (!selectedFile) return;
@@ -42,6 +47,8 @@ const AnalysisClient = () => {
       setFilterValue('');
       setMetricColumn('');
       setGroupingColumn('');
+      setSuggestion('');
+      setSuggestionError(null);
     } else {
       setError('Por favor, selecciona un archivo de Excel válido (.xlsx o .xls).');
     }
@@ -155,6 +162,33 @@ const AnalysisClient = () => {
     }).sort((a, b) => String(a[groupingColumn]).localeCompare(String(b[groupingColumn])));
   }, [filteredData, groupingColumn, metricColumn, metricType]);
 
+  const handleGenerateSuggestion = async () => {
+    if (!groupedData) return;
+    setIsSuggesting(true);
+    setSuggestionError(null);
+    setSuggestion('');
+    try {
+      const response = await fetch('/api/analysis/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          data: groupedData, 
+          metric: `${metricType} of ${metricColumn}`,
+          dimension: groupingColumn 
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al generar sugerencia.');
+      }
+      setSuggestion(result.suggestion);
+    } catch (err: any) {
+      setSuggestionError(err.message || 'No se pudieron obtener las sugerencias. Inténtalo de nuevo.');
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -248,6 +282,29 @@ const AnalysisClient = () => {
                   </ResponsiveContainer>
               </CardContent>
           </Card>
+      )}
+
+      {groupedData && groupedData.length > 0 && (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/>Asistente de Análisis</CardTitle>
+                <CardDescription>Obtén sugerencias estratégicas basadas en tus datos.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!suggestion && !isSuggesting && (
+                 <Button onClick={handleGenerateSuggestion} disabled={isSuggesting}>
+                    {isSuggesting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Generando...</> : 'Generar Sugerencias del Asistente'}
+                </Button>
+              )}
+              {isSuggesting && <p className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generando análisis y sugerencias...</p>}
+              {suggestionError && <p className="text-red-500 text-sm">Error: {suggestionError}</p>}
+              {suggestion && (
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                   <p className="whitespace-pre-wrap font-sans text-sm">{suggestion}</p>
+                </div>
+              )}
+            </CardContent>
+        </Card>
       )}
 
       {groupedData && groupedData.length > 0 && (
