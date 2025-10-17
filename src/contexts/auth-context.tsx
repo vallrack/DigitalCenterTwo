@@ -34,7 +34,7 @@ const blockingRoutes = ["/pending-approval", "/cancelled-account", "/subscriptio
 const essentialRoutes = ["/settings"]; // Routes accessible even when password change is forced
 
 const routesByRole: Record<UserRole, string[]> = {
-    'SuperAdmin': ['/dashboard', '/admin', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/student-portal', '/communications', '/caficultores'],
+    'SuperAdmin': ['/dashboard', '/admin', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/student-portal', '/communications', '/caficultores', '/analysis'],
     'Admin': ['/dashboard', '/customers', '/sales', '/settings', '/hr', '/academics', '/finance', '/inventory', '/reports', '/communications'],
     'Ventas': ['/dashboard', '/customers', '/sales', '/settings', '/communications'],
     'Academico': ['/dashboard', '/academics', '/settings'],

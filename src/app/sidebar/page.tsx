@@ -4,6 +4,7 @@
 import * as React from "react"
 import Link from "next/link"
 import {
+  BarChart, // Importar el nuevo ícono
   Bell,
   BookOpen,
   ChevronDown,
@@ -54,6 +55,7 @@ const navLinks = [
   { href: "/academics", label: "Gestión Académica", icon: BookOpen },
   { href: "/finance", label: "Finanzas", icon: DollarSign },
   { href: "/caficultores", label: "Gestion Caficultores", icon: Leaf },
+  { href: "/analysis", label: "Análisis de Datos", icon: BarChart }, // Corregido
 ]
 
 export default function SidebarPage() {

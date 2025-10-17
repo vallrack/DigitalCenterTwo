@@ -22,6 +22,7 @@ import {
   Archive,
   ShoppingCart,
   AreaChart,
+  BarChart, // Importado
   UserSquare,
   Mail,
   Leaf,
@@ -78,6 +79,7 @@ const allNavLinks: NavLink[] = [
   { href: '/inventory', label: 'Inventario', icon: Archive, requiredModule: 'inventory', roles: ['Admin', 'SuperAdmin'] },
   { href: '/sales', label: 'Ventas (POS)', icon: ShoppingCart, requiredModule: 'sales', roles: ['Admin', 'Ventas', 'SuperAdmin'] },
   { href: '/caficultores', label: 'Gestion Caficultores', icon: Leaf },
+  { href: '/analysis', label: 'Análisis de Datos', icon: BarChart }, // ¡Añadido aquí!
   { href: '/communications', label: 'Comunicaciones', icon: Mail, requiredModule: 'communications', roles: ['Admin', 'Ventas', 'Marketing', 'SuperAdmin'] },
   { href: '/reports', label: 'Reportes', icon: AreaChart, requiredModule: 'reports', roles: ['Admin', 'Finanzas', 'SuperAdmin'] },
 ];
