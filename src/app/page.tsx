@@ -87,6 +87,12 @@ const features = [
     title: 'Gestión de Caficultores',
     description: 'Administra lotes, cultivos y trazabilidad del café.',
     imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/granos-de-cafe-en-un-recipiente-con-cuchara-3d-icon-png-download-12027615.png'
+  },
+  {
+    icon: AreaChart,
+    title: 'Analisis de datos y toma de decisiones',
+    description: 'Visualiza y analiza la información para tomar decisiones inteligentes.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/analisis-de-datos-3d-icon-png-download-12839918.png'
   }
 ];
 
