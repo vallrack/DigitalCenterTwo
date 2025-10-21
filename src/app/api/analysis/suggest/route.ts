@@ -1,8 +1,19 @@
-
-import '@/ai/genkit.config'; // Carga explícita de la configuración de Genkit
+import { configureGenkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { NextResponse } from 'next/server';
 import { generateSuggestion } from '@/ai/actions/suggestion';
-import { ai } from '@/ai/genkit'; // We still need to import this to initialize Genkit
+
+// Configuración de Genkit inyectada directamente
+configureGenkit({
+  plugins: [
+    googleAI({
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +34,6 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('[API /analysis/suggest] Error:', error);
-    // Provide a more generic error to the client for security
     return NextResponse.json({ error: 'Ocurrió un error en el servidor al generar la sugerencia con la IA de Google.' }, { status: 500 });
   }
 }
