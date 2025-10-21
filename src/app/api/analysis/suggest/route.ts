@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { generate } from 'genkit/ai';
+import { generate } from '@genkit-ai/ai';
 import {ai} from '@/ai/genkit';
 
 ai()//This is a workaround to initialize the genkit
