@@ -1,7 +1,6 @@
-import '@/ai/genkit.config'; // Carga explícita de la configuración de Genkit
+import '@/ai/genkit'; // Carga explícita de la configuración de Genkit
 import { NextResponse } from 'next/server';
 import { generateSuggestion } from '@/ai/actions/suggestion';
-import { ai } from '@/ai/genkit'; // We still need to import this to initialize Genkit
 
 export async function POST(request: Request) {
   try {
