@@ -6,10 +6,23 @@
  *   and Firestore 'employees' collection, after logging the deletion.
  */
 
-import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { configureGenkit } from 'genkit';
 import { z } from 'genkit';
 import { db, auth } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/lib/types';
+
+// Configure Genkit directly in the file
+const ai = configureGenkit({
+  plugins: [
+    googleAI({ 
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 const DeleteUserInputSchema = z.object({
   uid: z.string().describe('The unique ID of the user to delete.'),

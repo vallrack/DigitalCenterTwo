@@ -6,11 +6,24 @@
  * - createNewUserServer - Creates a user in Auth and their profile in Firestore.
  */
 
-import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { configureGenkit } from 'genkit';
 import { z } from 'genkit';
 import { db, auth } from '@/lib/firebase-admin';
 import type { UserProfile, Employee, UserRole } from '@/lib/types';
 import { addEmployee } from '@/services/employee-service'; // Import the centralized function
+
+// Configure Genkit directly in the file
+const ai = configureGenkit({
+  plugins: [
+    googleAI({ 
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 const CreateUserInputSchema = z.object({
   name: z.string(),

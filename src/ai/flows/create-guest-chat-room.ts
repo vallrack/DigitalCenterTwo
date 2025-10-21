@@ -5,10 +5,23 @@
  * - createGuestChatRoom - Creates a chat room and returns a custom auth token for the guest.
  */
 
-import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { configureGenkit } from 'genkit';
 import { z } from 'genkit';
 import { serverTimestamp } from 'firebase-admin/firestore';
 import { db, auth } from '@/lib/firebase-admin';
+
+// Configure Genkit directly in the file
+const ai = configureGenkit({
+  plugins: [
+    googleAI({ 
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 const CreateGuestChatRoomOutputSchema = z.object({
   roomId: z.string().describe('The ID of the newly created chat room.'),

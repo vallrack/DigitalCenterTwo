@@ -8,8 +8,21 @@
  * - GenerateClassRecordingSummaryOutput - The return type for the generateClassRecordingSummary function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { configureGenkit } from 'genkit';
+import { z } from 'genkit';
+
+// Configure Genkit directly in the file
+const ai = configureGenkit({
+  plugins: [
+    googleAI({ 
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 const GenerateClassRecordingSummaryInputSchema = z.object({
   videoClassLink: z

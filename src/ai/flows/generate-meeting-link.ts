@@ -8,8 +8,21 @@
  * - GenerateMeetingLinkOutput - The return type for the generateMeetingLink function.
  */
 
-import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
+import { configureGenkit } from 'genkit';
 import { z } from 'genkit';
+
+// Configure Genkit directly in the file
+const ai = configureGenkit({
+  plugins: [
+    googleAI({ 
+      apiVersion: "v1beta",
+      apiKey: process.env.GOOGLE_API_KEY
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 const GenerateMeetingLinkInputSchema = z.object({
   summary: z.string().describe('A brief summary or title for the meeting.'),
