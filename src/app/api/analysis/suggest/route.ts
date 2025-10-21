@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// IMPORTANT: Authenticate with Google Cloud. Set your API key in a .env.local file.
-// Get your API key from Google AI Studio: https://aistudio.google.com/app/apikey
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+import { NextResponse } from 'next/server';
+import { generate } from 'genkit/ai';
+import {ai} from '@/ai/genkit';
+
+ai()//This is a workaround to initialize the genkit
 
 export async function POST(request: Request) {
   try {
@@ -13,8 +13,6 @@ export async function POST(request: Request) {
     if (!data || !metric || !dimension) {
       return NextResponse.json({ error: 'Datos insuficientes para el análisis. Se requiere métrica, dimensión y data.' }, { status: 400 });
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
     const prompt = `
       Eres un asistente de análisis de datos experto en negocios. Tu tarea es analizar los siguientes datos y proporcionar 3 sugerencias estratégicas y accionables en español.
@@ -34,9 +32,11 @@ export async function POST(request: Request) {
       3. **Acción Sugerida 3:** Detalle de la sugerencia y por qué es relevante según los datos.
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const suggestion = response.text();
+    const llmResponse = await generate({ 
+      prompt,
+      model: 'googleai/gemini-1.5-flash'
+     });
+    const suggestion = llmResponse.text();
 
     if (!suggestion) {
       return NextResponse.json({ error: 'No se pudo generar una sugerencia con el modelo de IA.' }, { status: 500 });
