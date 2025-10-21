@@ -76,6 +76,12 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      boxShadow: {
+        'purple-glow': '0 0 20px 0 rgba(168, 85, 247, 0.5)',
+        'blue-glow': '0 0 20px 0 rgba(59, 130, 246, 0.5)',
+        'purple-glow-lg': '0 0 30px 5px rgba(168, 85, 247, 0.6)',
+        'blue-glow-lg': '0 0 30px 5px rgba(59, 130, 246, 0.6)',
+      },
       keyframes: {
         'accordion-down': {
           from: {
