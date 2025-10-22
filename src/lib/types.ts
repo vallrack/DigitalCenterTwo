@@ -64,6 +64,21 @@ export type ThemeColors = {
   accent: string;
 };
 
+// --- Odontology Module Types ---
+
+export type Patient = {
+  id: string;
+  name: string;
+  identificationNumber: string;
+  age: number;
+  gender: 'Masculino' | 'Femenino' | 'Otro';
+  contact: string; // email or phone
+  medicalHistory: string; // Antecedentes médicos
+  organizationId: string;
+  createdAt?: any;
+  updatedAt?: any;
+};
+
 // --- CRM Specific Types ---
 
 export type CustomerType = 'Prospecto' | 'Activo' | 'Inactivo' | 'Potencial';

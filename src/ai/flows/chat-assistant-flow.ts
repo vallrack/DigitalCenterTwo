@@ -1,29 +1,16 @@
 'use server';
 /**
- * @fileOverview An AI chat assistant to guide user conversations.
- *
- * - chatAssistant - A function that generates a helpful response based on chat history.
- * - ChatAssistantInput - The input type for the chatAssistant function.
- * - ChatAssistantOutput - The return type for the chatAssistant function.
+ * @fileOverview An AI chat assistant to guide user conversations using Google Generative AI.
  */
 
-import { googleAI } from '@genkit-ai/googleai';
-import { configureGenkit } from 'genkit';
-import { z } from 'genkit';
-import type { ChatMessage } from '@/lib/types';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { z } from 'zod';
 
-// Configure Genkit directly in the file
-const ai = configureGenkit({
-  plugins: [
-    googleAI({ 
-      apiVersion: "v1beta",
-      apiKey: process.env.GOOGLE_API_KEY
-    }),
-  ],
-  logLevel: 'debug',
-  enableTracingAndMetrics: true,
-});
+// --- Inicialización del Cliente de IA de Google ---
+// La clave se lee de las variables de entorno (GOOGLE_API_KEY).
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
+// --- Esquemas de Validación de Entrada y Salida ---
 const ChatAssistantInputSchema = z.object({
   chatHistory: z.array(z.object({
     senderName: z.string(),
@@ -39,19 +26,32 @@ const ChatAssistantOutputSchema = z.object({
 });
 export type ChatAssistantOutput = z.infer<typeof ChatAssistantOutputSchema>;
 
+// --- Función Principal del Asistente de Chat ---
 export async function chatAssistant(
   input: ChatAssistantInput
 ): Promise<ChatAssistantOutput> {
-  return chatAssistantFlow(input);
-}
 
-const prompt = ai.definePrompt({
-  name: 'chatAssistantPrompt',
-  input: { schema: ChatAssistantInputSchema },
-  output: { schema: ChatAssistantOutputSchema },
-  prompt: `Eres un "Asistente Virtual" amigable y eficiente para una plataforma de gestión llamada DigitalCenter. Tu objetivo principal es entender la intención del usuario y guiar la conversación hacia el equipo correcto (Soporte, Ventas, Administración) usando preguntas claras y predefinidas. NO respondas directamente a la pregunta del usuario a menos que sea un saludo simple. Tu rol es enrutar.
+  // 1. Validar la entrada (aunque Next.js ya lo hace, es una buena práctica)
+  const validation = ChatAssistantInputSchema.safeParse(input);
+  if (!validation.success) {
+    console.error("Invalid input to chatAssistant:", validation.error.format());
+    return { response: 'Error: La entrada no es válida.' };
+  }
 
-Basado en el historial de la conversación y el mensaje actual del usuario, identifica a qué categoría pertenece su consulta. La categoría de la sala es: {{{roomCategory}}}.
+  // 2. Prevenir que el asistente se responda a sí mismo
+  const lastMessage = input.chatHistory[input.chatHistory.length - 1];
+  if (lastMessage?.senderName === 'Asistente Virtual') {
+      return { response: '' }; // No hacer nada si el último mensaje fue del asistente
+  }
+
+  // 3. Construir el prompt para el modelo de IA
+  const historyString = input.chatHistory
+    .map(msg => `- ${msg.senderName}: ${msg.text}`)
+    .join('\n');
+
+  const prompt = `Eres un "Asistente Virtual" amigable y eficiente para una plataforma de gestión llamada DigitalCenter. Tu objetivo principal es entender la intención del usuario y guiar la conversación hacia el equipo correcto (Soporte, Ventas, Administración) usando preguntas claras y predefinidas. NO respondas directamente a la pregunta del usuario a menos que sea un saludo simple. Tu rol es enrutar.
+
+Basado en el historial de la conversación y el mensaje actual del usuario, identifica a qué categoría pertenece su consulta. La categoría de la sala es: ${input.roomCategory}.
 
 Aquí están tus flujos de conversación predefinidos. Elige UNO y SOLO UNO que mejor se ajuste a la consulta del usuario.
 
@@ -71,30 +71,25 @@ Aquí están tus flujos de conversación predefinidos. Elige UNO y SOLO UNO que 
     *   Tu respuesta: "¡Hola! Soy el Asistente Virtual de DigitalCenter. ¿En qué te puedo ayudar hoy? Puedes consultarme sobre soporte técnico, ventas, dudas generales o temas administrativos."
 
 **Historial de la Conversación:**
-{{#each chatHistory}}
-- {{senderName}}: {{text}}
-{{/each}}
+${historyString}
 
 **Mensaje Actual del Usuario:**
-- {{{currentMessage}}}
+- ${input.currentMessage}
 
-Basado en el mensaje actual y el contexto, genera la respuesta más apropiada del Asistente Virtual.`,
-});
+Basado en el mensaje actual y el contexto, genera la respuesta más apropiada del Asistente Virtual.`;
 
-const chatAssistantFlow = ai.defineFlow(
-  {
-    name: 'chatAssistantFlow',
-    inputSchema: ChatAssistantInputSchema,
-    outputSchema: ChatAssistantOutputSchema,
-  },
-  async (input) => {
-    // Prevent the assistant from talking to itself
-    const lastMessageSender = input.chatHistory[input.chatHistory.length - 1]?.senderName;
-    if (lastMessageSender === 'Asistente Virtual') {
-        return { response: '' }; // Do not respond if the last message was from the assistant
-    }
+  try {
+    // 4. Llamar al modelo de IA
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const responseText = response.text();
 
-    const { output } = await prompt(input);
-    return output!;
+    // 5. Devolver la respuesta en el formato correcto
+    return { response: responseText };
+
+  } catch (error) {
+    console.error('[Chat Assistant] Error calling Google AI:', error);
+    return { response: 'Lo siento, estoy teniendo problemas para conectarme. Por favor, intenta de nuevo más tarde.' };
   }
-);
+}

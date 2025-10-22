@@ -26,6 +26,7 @@ import {
   UserSquare,
   Mail,
   Leaf,
+  HeartPulse,
 } from 'lucide-react';
 
 import {
@@ -80,6 +81,7 @@ const allNavLinks: NavLink[] = [
   { href: '/sales', label: 'Ventas (POS)', icon: ShoppingCart, requiredModule: 'sales', roles: ['Admin', 'Ventas', 'SuperAdmin'] },
   { href: '/caficultores', label: 'Gestion Caficultores', icon: Leaf },
   { href: '/analysis', label: 'Análisis de Datos', icon: BarChart }, // ¡Añadido aquí!
+  { href: '/odontology', label: 'Odontología', icon: HeartPulse, requiredModule: 'odontology', roles: ['Admin', 'SuperAdmin'] },
   { href: '/communications', label: 'Comunicaciones', icon: Mail, requiredModule: 'communications', roles: ['Admin', 'Ventas', 'Marketing', 'SuperAdmin'] },
   { href: '/reports', label: 'Reportes', icon: AreaChart, requiredModule: 'reports', roles: ['Admin', 'Finanzas', 'SuperAdmin'] },
 ];

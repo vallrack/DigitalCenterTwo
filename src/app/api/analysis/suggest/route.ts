@@ -1,35 +1,33 @@
 
 import { NextResponse } from 'next/server';
-import { googleAI } from '@genkit-ai/googleai';
-import { configureGenkit, defineFlow, z } from 'genkit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { z } from 'zod';
 
-// --- Configuración de Genkit --- 
-// Estandarizado para usar el objeto `ai` y definir un flow.
-const ai = configureGenkit({
-  plugins: [
-    googleAI({ 
-      apiVersion: "v1beta",
-      apiKey: process.env.GOOGLE_API_KEY
-    }),
-  ],
-  logLevel: 'debug',
-  enableTracingAndMetrics: true,
-});
-
-// --- Definición del Flow de IA --- 
+// --- Esquema de Validación ---
 const SuggestionInputSchema = z.object({
-    metric: z.string(),
-    dimension: z.string(),
-    data: z.any(), // Los datos pueden tener cualquier estructura JSON
+  metric: z.string(),
+  dimension: z.string(),
+  data: z.any(),
 });
 
-const suggestionFlow = defineFlow(
-  {
-    name: 'suggestionFlow',
-    inputSchema: SuggestionInputSchema,
-    outputSchema: z.string(),
-  },
-  async ({ metric, dimension, data }) => {
+// --- Inicialización del Cliente de IA de Google ---
+// La clave de la API se lee automáticamente de las variables de entorno de Vercel (GOOGLE_API_KEY).
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+
+// --- Ruta de la API ---
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    // 1. Validar los datos de entrada
+    const validation = SuggestionInputSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Datos insuficientes para el análisis.', details: validation.error.format() }, { status: 400 });
+    }
+
+    const { metric, dimension, data } = validation.data;
+
+    // 2. Preparar el prompt para el modelo de IA
     const prompt = `
       Eres un asistente de análisis de datos experto en negocios. Tu tarea es analizar los siguientes datos y proporcionar 3 sugerencias estratégicas y accionables en español.
       Los datos representan un resumen donde la métrica es '${metric}' y la dimensión de agrupación es '${dimension}'.
@@ -48,33 +46,18 @@ const suggestionFlow = defineFlow(
       3. **Acción Sugerida 3:** Detalle de la sugerencia y por qué es relevante según los datos.
     `;
 
-    const llmResponse = await ai.generate({ 
-      prompt,
-      model: 'googleai/gemini-1.5-flash'
-    });
+    // 3. Llamar al modelo de IA
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const suggestionText = response.text();
 
-    return llmResponse.text();
-  }
-);
-
-// --- Ruta de la API --- 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-
-    // Validar con el Zod schema del flow
-    const validation = SuggestionInputSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json({ error: 'Datos insuficientes para el análisis.', details: validation.error.format() }, { status: 400 });
-    }
-
-    const suggestion = await suggestionFlow(validation.data);
-
-    if (!suggestion) {
+    if (!suggestionText) {
       return NextResponse.json({ error: 'No se pudo generar una sugerencia con el modelo de IA.' }, { status: 500 });
     }
 
-    return NextResponse.json({ suggestion });
+    // 4. Devolver la respuesta
+    return NextResponse.json({ suggestion: suggestionText });
 
   } catch (error) {
     console.error('[API /analysis/suggest] Error:', error);
