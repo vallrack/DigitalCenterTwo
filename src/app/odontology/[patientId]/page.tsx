@@ -44,7 +44,6 @@ export default function PatientDetailPage() {
   useEffect(() => {
     const isPrinting = searchParams.get('print') === 'true';
     if (isPrinting && !loading) {
-      // Delay print slightly to ensure all content is rendered
       setTimeout(() => window.print(), 500);
     }
   }, [searchParams, loading]);
@@ -81,9 +80,9 @@ export default function PatientDetailPage() {
   return (
     <div>
         <div className="flex items-center justify-between mb-4 print:hidden">
-            <Button onClick={() => router.back()} variant="outline">
+            <Button onClick={() => router.push('/odontology')} variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
+                Volver al Listado
             </Button>
             <div className="flex items-center gap-2">
                 <Button onClick={handleSave} disabled={isSaving}>
@@ -97,7 +96,6 @@ export default function PatientDetailPage() {
             </div>
       </div>
 
-      {/* Title visible for both screen and print */}
       <h1 className="text-xl font-bold md:text-2xl mb-4">Historia Clínica de: {patient.name}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -110,7 +108,6 @@ export default function PatientDetailPage() {
                 <p><strong>Fecha de Registro:</strong> {new Date(patient.registrationDate).toLocaleDateString()}</p>
             </div>
             <h3 className="text-lg font-semibold mb-2">Antecedentes y Notas</h3>
-            {/* Show textarea for editing, hide for printing */}
             <div className="print:hidden">
               <Textarea
                   value={medicalHistory}
@@ -119,7 +116,6 @@ export default function PatientDetailPage() {
                   className="w-full h-80"
               />
             </div>
-            {/* Show just the text for printing */}
             <div className="hidden print:block bg-white p-4 rounded-lg">
                 <p className="text-sm whitespace-pre-wrap">{medicalHistory}</p>
             </div>
