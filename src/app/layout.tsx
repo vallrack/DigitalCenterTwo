@@ -29,7 +29,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <Providers>{children}</Providers>
-        <Toaster />
+        <div className="print:hidden">
+          <Toaster />
+        </div>
       </body>
     </html>
   );

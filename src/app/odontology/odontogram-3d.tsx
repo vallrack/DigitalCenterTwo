@@ -376,6 +376,7 @@ const Odontograma3D: React.FC = () => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
        <div
+        className="print:hidden"
         style={{
           position: 'absolute',
           top: '20px',
@@ -404,6 +405,7 @@ const Odontograma3D: React.FC = () => {
 
       {/* Legend */}
       <div
+        className="print:hidden"
         style={{
           position: 'absolute',
           top: '20px',
@@ -524,6 +526,7 @@ const Odontograma3D: React.FC = () => {
 
       {/* Controls */}
       <div
+        className="print:hidden"
         style={{
           position: 'absolute',
           bottom: '20px',
