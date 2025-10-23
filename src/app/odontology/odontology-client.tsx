@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { PatientDataTable } from "./data-table";
 import { getPatients } from "@/services/odontology-service";
 import { Patient } from "@/lib/types";
@@ -22,6 +22,8 @@ export function OdontologyClient() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const columns = getColumns(fetchData);
 
   return (
     <div className="space-y-4">

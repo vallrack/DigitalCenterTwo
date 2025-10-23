@@ -10,6 +10,8 @@ let patients: Patient[] = [
     gender: "Masculino",
     contact: "juan.perez@example.com",
     registrationDate: new Date("2023-01-15"),
+    medicalHistory: "Paciente con antecedentes de hipertensión. Última consulta para limpieza.",
+    odontogramState: {"16":{"status":"present","conditions":["caries"]},"17":{"status":"absent"},"25":{"status":"present","conditions":["restoration"]},"32":{"status":"present","conditions":["fracture","caries"]}}
   },
   {
     id: "2",
@@ -19,6 +21,8 @@ let patients: Patient[] = [
     gender: "Femenino",
     contact: "ana.gomez@example.com",
     registrationDate: new Date("2023-02-20"),
+    medicalHistory: "Sin antecedentes médicos de relevancia.",
+    odontogramState: {}
   },
   {
     id: "3",
@@ -28,18 +32,31 @@ let patients: Patient[] = [
     gender: "Masculino",
     contact: "luis.torres@example.com",
     registrationDate: new Date("2023-03-10"),
+    medicalHistory: "Paciente fumador, presenta enfermedad periodontal.",
+    odontogramState: {}
   },
 ];
 
+// GET ALL PATIENTS
 export const getPatients = async (): Promise<Patient[]> => {
-  // Simulate a delay to represent a real API call
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(patients);
+      resolve(JSON.parse(JSON.stringify(patients)));
     }, 500);
   });
 };
 
+// GET PATIENT BY ID
+export const getPatientById = async (id: string): Promise<Patient | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const patient = patients.find((p) => p.id === id);
+      resolve(patient ? JSON.parse(JSON.stringify(patient)) : null);
+    }, 300);
+  });
+};
+
+// ADD NEW PATIENT
 export const addPatient = async (patient: Omit<Patient, 'id' | 'registrationDate'>): Promise<Patient> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -50,10 +67,42 @@ export const addPatient = async (patient: Omit<Patient, 'id' | 'registrationDate
           ...patient,
           id: (patients.length + 1).toString(),
           registrationDate: new Date(),
+          medicalHistory: '',
+          odontogramState: {},
         };
         patients.push(newPatient);
         resolve(newPatient);
       }
     }, 500);
   });
+};
+
+// UPDATE PATIENT
+export const updatePatient = async (id: string, updatedData: Partial<Patient>): Promise<Patient> => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const patientIndex = patients.findIndex(p => p.id === id);
+            if (patientIndex !== -1) {
+                patients[patientIndex] = { ...patients[patientIndex], ...updatedData };
+                resolve(patients[patientIndex]);
+            } else {
+                reject(new Error("Paciente no encontrado."));
+            }
+        }, 500);
+    });
+};
+
+// DELETE PATIENT
+export const deletePatient = async (id: string): Promise<{ success: true }> => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const initialLength = patients.length;
+            patients = patients.filter(p => p.id !== id);
+            if (patients.length < initialLength) {
+                resolve({ success: true });
+            } else {
+                reject(new Error("No se pudo encontrar el paciente para eliminar."));
+            }
+        }, 500);
+    });
 };
