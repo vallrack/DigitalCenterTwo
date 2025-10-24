@@ -39,6 +39,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/react-timeago": "^4.1.7",
     "@types/recharts": "^1.8.29",
+    "@types/three": "^0.180.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

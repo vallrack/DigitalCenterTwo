@@ -14,9 +14,9 @@ interface ToothProps {
 
 // A map to translate surface IDs to friendly names for aria-labels
 const surfaceLabels: Record<ToothSurface, string> = {
-  C: "Central",
-  T: "Superior",
-  B: "Inferior",
+  C: "Superior",
+  T: "Frontal",
+  B: "Trasera",
   L: "Izquierda",
   R: "Derecha",
 };
@@ -45,28 +45,28 @@ export function Tooth({ toothNumber, selectedSurfaces, onSurfaceClick }: ToothPr
         xmlns="http://www.w3.org/2000/svg"
         aria-label={`Odontograma del diente ${toothNumber}`}
       >
-        {/* Center (Oclusal) surface */}
+        {/* Center (Oclusal) surface - Now labeled as "Superior" */}
         <circle
           cx="25"
           cy="25"
           r="10"
           className={cn(surfaceBaseClasses, isSurfaceSelected("C") ? selectedClasses : notSelectedClasses)}
           onClick={() => onSurfaceClick("C")}
-          aria-label={`Superficie Central del diente ${toothNumber}`}
+          aria-label={`Superficie Superior del diente ${toothNumber}`}
         />
-        {/* Top (Vestibular) surface */}
+        {/* Top (Vestibular) surface - Now labeled as "Frontal" */}
         <path
           d="M 15,15 A 15,15 0 0,1 35,15 L 30,20 A 5,5 0 0,0 20,20 Z"
           className={cn(surfaceBaseClasses, isSurfaceSelected("T") ? selectedClasses : notSelectedClasses)}
           onClick={() => onSurfaceClick("T")}
-          aria-label={`Superficie Superior del diente ${toothNumber}`}
+          aria-label={`Superficie Frontal del diente ${toothNumber}`}
         />
-        {/* Bottom (Lingual/Palatina) surface */}
+        {/* Bottom (Lingual/Palatina) surface - Now labeled as "Trasera" */}
         <path
           d="M 15,35 A 15,15 0 0,0 35,35 L 30,30 A 5,5 0 0,1 20,30 Z"
           className={cn(surfaceBaseClasses, isSurfaceSelected("B") ? selectedClasses : notSelectedClasses)}
           onClick={() => onSurfaceClick("B")}
-          aria-label={`Superficie Inferior del diente ${toothNumber}`}
+          aria-label={`Superficie Trasera del diente ${toothNumber}`}
         />
         {/* Left (Mesial) surface */}
         <path

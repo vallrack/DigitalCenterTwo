@@ -1,3 +1,4 @@
+
 // /src/app/odontology/columns.tsx
 "use client"
 
@@ -5,15 +6,20 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Patient } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Printer, Trash, FileText } from "lucide-react"
+import { MoreHorizontal, Printer, Trash, FileText, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { deletePatient } from "@/services/odontology-service"
 import { useToast } from "@/hooks/use-toast"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-
-const CellActions = ({ patient, onPatientDeleted }: { patient: Patient, onPatientDeleted: () => void }) => {
+const CellActions = ({ 
+    patient, 
+    onPatientDeleted, 
+    onViewPatient 
+}: { 
+    patient: Patient, 
+    onPatientDeleted: () => void, 
+    onViewPatient: (patient: Patient) => void 
+}) => {
     const router = useRouter();
     const { toast } = useToast();
 
@@ -39,9 +45,13 @@ const CellActions = ({ patient, onPatientDeleted }: { patient: Patient, onPatien
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onViewPatient(patient)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver Detalles
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push(`/odontology/${patient.id}`)}>
                     <FileText className="mr-2 h-4 w-4" />
-                    Ver Historia y Odontograma
+                    Gestionar Odontograma
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push(`/odontology/${patient.id}?print=true`)}>
                     <Printer className="mr-2 h-4 w-4" />
@@ -57,7 +67,7 @@ const CellActions = ({ patient, onPatientDeleted }: { patient: Patient, onPatien
     );
 };
 
-export const getColumns = (onPatientDeleted: () => void): ColumnDef<Patient>[] => [
+export const getColumns = (onPatientDeleted: () => void, onViewPatient: (patient: Patient) => void): ColumnDef<Patient>[] => [
     {
         accessorKey: "name",
         header: "Nombre",
@@ -75,14 +85,10 @@ export const getColumns = (onPatientDeleted: () => void): ColumnDef<Patient>[] =
         header: "Género",
     },
     {
-        accessorKey: "contact",
-        header: "Contacto",
-    },
-    {
         id: "actions",
         cell: ({ row }) => {
             const patient = row.original
-            return <CellActions patient={patient} onPatientDeleted={onPatientDeleted} />;
+            return <CellActions patient={patient} onPatientDeleted={onPatientDeleted} onViewPatient={onViewPatient} />;
         },
     },
 ]

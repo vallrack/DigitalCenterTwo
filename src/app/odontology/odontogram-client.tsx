@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 
 // Dynamically import the new 3D odontogram component with SSR turned off.
-// The 'default' export is now being used.
 const Odontograma3D = dynamic(() => import('./odontogram-3d'), {
   ssr: false,
   loading: () => <p className="text-center p-4">Cargando Odontograma 3D...</p>,
@@ -13,6 +12,8 @@ const Odontograma3D = dynamic(() => import('./odontogram-3d'), {
 
 /**
  * This client component now wraps the more advanced 3D odontogram.
+ * A parent container with relative positioning is added to contain the absolutely positioned UI elements
+ * of the Odontograma3D component.
  */
 export function OdontogramClient() {
   return (
@@ -21,8 +22,8 @@ export function OdontogramClient() {
         <CardTitle>Odontograma Interactivo</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* The container for the 3D scene needs a specific height. */}
-        <div style={{ height: '70vh', width: '100%' }}>
+        {/* The container for the 3D scene needs a specific height and relative positioning. */}
+        <div style={{ height: '70vh', width: '100%', position: 'relative', overflow: 'hidden' }}>
           <Odontograma3D />
         </div>
       </CardContent>
