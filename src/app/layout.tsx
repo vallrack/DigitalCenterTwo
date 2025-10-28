@@ -29,7 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <Providers><Suspense fallback={<div>Loading...</div>}>{children}</Suspense></Providers>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Providers>{children}</Providers>
+        </Suspense>
         <div className="print:hidden">
           <Toaster />
         </div>
