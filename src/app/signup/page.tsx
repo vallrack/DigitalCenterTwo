@@ -29,10 +29,16 @@ type SelectedModules = Partial<Organization['modules']>;
 const moduleLabels: { id: keyof Organization['modules']; label: string, description: string }[] = [
     { id: 'hr', label: 'Recursos Humanos', description: 'Gestión de empleados y nómina.' },
     { id: 'academics', label: 'Gestión Académica', description: 'Planes de lección, materias, horarios.' },
-    { id: 'finance', label: 'Finanzas', description: 'Contabilidad, facturación (próx.).' },
-    { id: 'students', label: 'Estudiantes', description: 'Gestión de expedientes estudiantiles.' },
+    { id: 'students', label: 'Gestión de Estudiantes', description: 'Administra expedientes estudiantiles.' },
+    { id: 'studentPortal', label: 'Portal Estudiantil', description: 'Espacio para que estudiantes consulten notas.' },
+    { id: 'finance', label: 'Finanzas', description: 'Contabilidad y facturación.' },
     { id: 'inventory', label: 'Inventario', description: 'Control de productos y stock.' },
     { id: 'sales', label: 'Ventas (POS)', description: 'Terminal punto de venta.' },
+    { id: 'workshop', label: 'Gestión de Taller', description: 'Administra órdenes de servicio y reparaciones.' },
+    { id: 'restaurant', label: 'Gestión de Restaurante', description: 'Administración de menús, mesas y pedidos.' },
+    { id: 'coffee', label: 'Gestión de Caficultores', description: 'Administra lotes, cultivos y trazabilidad.' },
+    { id: 'odontology', label: 'Módulo de Odontología', description: 'Gestiona historias clínicas y odontogramas 3D.' },
+    { id: 'assets', label: 'Gestión de Activos', description: 'Control y mantenimiento de activos fijos.' },
     { id: 'reports', label: 'Reportes y Analíticas', description: 'Informes de gestión.' },
     { id: 'communications', label: 'Comunicaciones', description: 'Campañas de Email y WhatsApp.' },
     { id: 'landingPage', label: 'Página Pública', description: 'Página de inicio personalizable.' },
@@ -42,17 +48,7 @@ const moduleLabels: { id: keyof Organization['modules']; label: string, descript
 export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const [selectedModules, setSelectedModules] = useState<SelectedModules>({
-      hr: true,
-      academics: true,
-      finance: true,
-      students: true,
-      inventory: false,
-      sales: false,
-      reports: false,
-      communications: false,
-      landingPage: false,
-  });
+  const [selectedModules, setSelectedModules] = useState<SelectedModules>({});
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();

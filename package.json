@@ -45,10 +45,12 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
+    "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "exceljs": "^4.4.0",
     "firebase": "^10.12.2",
     "genkit": "^1.21.0",
+    "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
@@ -68,7 +70,8 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.180.0",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/node": "^20",

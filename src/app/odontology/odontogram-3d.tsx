@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 
 // Memoized Legend Component for performance
@@ -36,7 +36,7 @@ const Legend = React.memo(({ conditions, onSelectSymbol, onToggle, isMinimized }
 ));
 Legend.displayName = 'Legend';
 
-const Odontograma3D = () => {
+const Odontograma3D = forwardRef((props: any, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<THREE.WebGLRenderer>();
     const sceneRef = useRef(new THREE.Scene());
@@ -47,10 +47,18 @@ const Odontograma3D = () => {
     const isDraggingRef = useRef(false);
     const prevMouseRef = useRef({ x: 0, y: 0 });
 
+    const [uiVisible, setUiVisible] = useState(true);
     const [selectedSymbol, setSelectedSymbol] = useState<any>(null);
     const [selectedSection, setSelectedSection] = useState('vestibular');
     const [selectedToothInfo, setSelectedToothInfo] = useState('Ninguno');
     const [legendMinimized, setLegendMinimized] = useState(false);
+
+    // Expose methods to parent component
+    useImperativeHandle(ref, () => ({
+        toggleUI(visible: boolean) {
+            setUiVisible(visible);
+        }
+    }));
 
     // Use refs to hold current state for use in event listeners without re-binding
     const selectedSymbolRef = useRef(selectedSymbol);
@@ -122,13 +130,13 @@ const Odontograma3D = () => {
         const mount = mountRef.current;
 
         const scene = sceneRef.current;
-        scene.background = new THREE.Color(0x1a1a2e);
+        scene.background = new THREE.Color(0x1a1a2e); // Restored dark background
 
         const camera = cameraRef.current;
         camera.position.set(0, 8, 22); // Adjusted initial zoom
         camera.lookAt(0, 0, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(mount.clientWidth, mount.clientHeight);
         renderer.shadowMap.enabled = true;
@@ -146,7 +154,7 @@ const Odontograma3D = () => {
 
         const createTooth = (number, position, scale = 1) => {
             const group = new THREE.Group();
-            const material = new THREE.MeshPhongMaterial({ color: 0xf0e6d6, shininess: 40 });
+            const material = new THREE.MeshPhongMaterial({ color: 0xf0e6d6, shininess: 40 }); // Restored light tooth color
             const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.35, 0.8, 10), material);
             crown.position.y = 0.4; crown.castShadow = true; group.add(crown);
             const root = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.1, 0.7, 8), material);
@@ -309,28 +317,34 @@ const Odontograma3D = () => {
             <div ref={mountRef} className="odontogram-container">
                 {/* Canvas is appended by useEffect */}
                 
-                <div id="info" className="odontogram-ui">
-                    <h2>Odontograma 3D</h2>
-                    <p>🖱️ Arrastra para rotar</p>
-                    <p>🔍 Rueda para zoom</p>
-                    <p>Sección: <strong>{selectedSection === 'borrar' ? <span style={{color: '#e74c3c'}}>BORRAR</span> : selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}</strong></p>
-                    <p>Símbolo: <strong>{selectedSymbol?.condition || 'Ninguno'}</strong></p>
-                    <p>Diente: <strong dangerouslySetInnerHTML={{__html: selectedToothInfo}}></strong></p>
-                </div>
+                {uiVisible && (
+                    <>
+                        <div id="info" className="odontogram-ui">
+                            <h2>Odontograma 3D</h2>
+                            <p>🖱️ Arrastra para rotar</p>
+                            <p>🔍 Rueda para zoom</p>
+                            <p>Sección: <strong>{selectedSection === 'borrar' ? <span style={{color: '#e74c3c'}}>BORRAR</span> : selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}</strong></p>
+                            <p>Símbolo: <strong>{selectedSymbol?.condition || 'Ninguno'}</strong></p>
+                            <p>Diente: <strong dangerouslySetInnerHTML={{__html: selectedToothInfo}}></strong></p>
+                        </div>
 
-                <div id="section-selector" className="odontogram-ui">
-                    <button className="section-btn active" data-section="vestibular" onClick={() => handleSectionChange('vestibular')}>📍 Vestibular</button>
-                    <button className="section-btn" data-section="lingual" onClick={() => handleSectionChange('lingual')}>📍 Lingual</button>
-                    <button className="section-btn" data-section="mesial" onClick={() => handleSectionChange('mesial')}>📍 Mesial</button>
-                    <button className="section-btn" data-section="distal" onClick={() => handleSectionChange('distal')}>📍 Distal</button>
-                    <button className="section-btn" data-section="oclusal" onClick={() => handleSectionChange('oclusal')}>📍 Oclusal</button>
-                    <button className="section-btn" data-section="borrar" onClick={() => handleSectionChange('borrar')}>🗑️ Borrar</button>
-                </div>
+                        <div id="section-selector" className="odontogram-ui">
+                            <button className="section-btn active" data-section="vestibular" onClick={() => handleSectionChange('vestibular')}>📍 Vestibular</button>
+                            <button className="section-btn" data-section="lingual" onClick={() => handleSectionChange('lingual')}>📍 Lingual</button>
+                            <button className="section-btn" data-section="mesial" onClick={() => handleSectionChange('mesial')}>📍 Mesial</button>
+                            <button className="section-btn" data-section="distal" onClick={() => handleSectionChange('distal')}>📍 Distal</button>
+                            <button className="section-btn" data-section="oclusal" onClick={() => handleSectionChange('oclusal')}>📍 Oclusal</button>
+                            <button className="section-btn" data-section="borrar" onClick={() => handleSectionChange('borrar')}>🗑️ Borrar</button>
+                        </div>
 
-                <Legend conditions={conditions} onSelectSymbol={handleSymbolSelect} onToggle={setLegendMinimized} isMinimized={legendMinimized} />
+                        <Legend conditions={conditions} onSelectSymbol={handleSymbolSelect} onToggle={setLegendMinimized} isMinimized={legendMinimized} />
+                    </>
+                )}
             </div>
         </>
     );
-};
+});
+
+Odontograma3D.displayName = 'Odontograma3D';
 
 export default Odontograma3D;

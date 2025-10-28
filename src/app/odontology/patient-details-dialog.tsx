@@ -42,6 +42,7 @@ export function PatientDetailsDialog({ patient, isOpen, onOpenChange }: PatientD
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-3">Contacto y Ubicación</h3>
             <DetailItem label="Teléfono" value={patient.phone} />
             <DetailItem label="Email" value={patient.email} />
+            <DetailItem label="Dirección" value={patient.address} />
             <DetailItem label="Departamento" value={patient.department} />
             <DetailItem label="Municipio" value={patient.municipality} />
 

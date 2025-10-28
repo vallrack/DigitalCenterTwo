@@ -69,7 +69,8 @@ export default {
         purple: {
             ...colors.purple,
             '50': '#FAF5FF'
-        }
+        },
+        green: colors.green,
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -114,16 +115,12 @@ export default {
             transform: 'translateY(0)',
           },
           '50%': {
-            transform: 'translateY(-10px)',
+            transform: 'translateY(-20px)',
           },
         },
         'move-forever': {
-            '0%': {
-                transform: 'translate(-90px, 0%)',
-            },
-            '100%': {
-                transform: 'translate(85px, 0%)',
-            },
+          '0%': { transform: 'translate3d(-90px, 0, 0)' },
+          '100%': { transform: 'translate3d(85px, 0, 0)' },
         },
         'float-bubbles': {
           '0%': {
@@ -138,14 +135,22 @@ export default {
             opacity: '0',
           },
         },
+        'spin-reverse': {
+          to: {
+            transform: 'rotate(-360deg)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
         float: 'float 6s ease-in-out infinite',
-        'move-forever': 'move-forever 2s linear infinite',
+        'move-forever': 'move-forever 25s cubic-bezier(0.55, 0.5, 0.45, 0.5) infinite',
         'float-bubbles': 'float-bubbles linear infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 25s linear infinite',
+        'spin-reverse-slow': 'spin-reverse 25s linear infinite',
       },
     },
   },

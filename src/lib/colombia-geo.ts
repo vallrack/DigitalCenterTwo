@@ -1,3 +1,4 @@
+
 // /src/lib/colombia-geo.ts
 
 /**
@@ -167,3 +168,13 @@ export const departments = [
     municipalities: ["Puerto Carreño", "Cumaribo", "La Primavera", "Santa Rosalía"]
   }
 ];
+
+/**
+ * Gets the municipalities for a given department name.
+ * @param departmentName The name of the department.
+ * @returns An array of municipality names, or undefined if the department is not found.
+ */
+export const getMunicipalitiesByDepartment = (departmentName: string): string[] | undefined => {
+  const department = departments.find(dep => dep.name === departmentName);
+  return department?.municipalities;
+};

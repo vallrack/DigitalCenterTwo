@@ -1,74 +1,75 @@
+
 // /src/app/page.tsx
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BookOpen, DollarSign, Users, GraduationCap, Archive, ShoppingCart, AreaChart, Loader2, Mail, UserSquare, Shield, Menu, UserPlus, Leaf } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { addContactMessage } from '@/services/contact-service';
-import { ContactWidget } from '@/components/contact-widget';
 import { FeaturesCarousel } from './features-carousel';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import Bubbles from './bubbles'; 
+import { AreaChart, Briefcase, Calendar, CheckSquare, FileText, HeartPulse, Home, Users, X, ShoppingCart, Truck, Wrench, Building2, Bell, BookOpen, Utensils, Leaf, Shield, UserSquare, DollarSign, BarChart2, Factory, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ChatWidget } from './chat-widget';
 
 const features = [
   {
-    icon: UserPlus,
-    title: 'Gestión de Clientes (CRM)',
-    description: 'Centraliza la información y el ciclo de vida de tus clientes.',
-    imageUrl: 'https://www.brickcontrol.com/wp-content/uploads/2022/05/gestion-clientes.png'
+    icon: Home,
+    title: 'Página Pública',
+    description: 'Página de inicio personalizable para tu negocio.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/haga-clic-en-dominio-3d-icon-png-download-10174717.png'
   },
   {
-    icon: GraduationCap,
-    title: 'Gestión de Estudiantes',
-    description: 'Perfiles, matrículas y seguimiento detallado.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/hombre-trabajando-en-la-computadora-portatil-3d-icon-png-download-9291886.png'
+    icon: ShoppingCart,
+    title: 'Ventas (POS)',
+    description: 'Terminal de punto de venta rápido y eficiente.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/crecimiento-de-las-ventas-3d-icon-png-download-12132035.png'
+  },
+  {
+    icon: Truck,
+    title: 'Inventario',
+    description: 'Control de productos, stock y movimientos.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/inventario-3d-icon-png-download-10958665.png'
+  },
+  {
+    icon: Briefcase,
+    title: 'Recursos Humanos',
+    description: 'Gestión de empleados, nómina y desempeño.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/recursos-humanos-3d-icon-png-download-12542195.png'
+  },
+  {
+    icon: Building2,
+    title: 'Gestión de Activos',
+    description: 'Control y mantenimiento de activos fijos.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/fixed-asset-register-3d-icon-png-download-12839912.png'
+  },
+  {
+    icon: Bell,
+    title: 'Comunicaciones',
+    description: 'Campañas de Email y WhatsApp.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/comunicacion-3d-icon-png-download-4745548.png'
   },
   {
     icon: BookOpen,
     title: 'Gestión Académica',
-    description: 'Cree materias, planes de lección y horarios.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/edificio-escolar-3d-icon-png-download-7762972.png'
-  },
-  {
-    icon: DollarSign,
-    title: 'Finanzas y Contabilidad',
-    description: 'Facturación, CXC, CXP y contabilidad completa.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/finanzas-internacionales-3d-icon-png-download-8646468.png'
+    description: 'Planes de lección, materias y horarios.',
+    imageUrl: 'https://png.pngtree.com/png-vector/20250226/ourmid/pngtree-user-friendly-3d-educational-app-interface-design-vector-png-image_15598649.png'
   },
   {
     icon: Users,
-    title: 'Recursos Humanos',
-    description: 'Gestione empleados y procese la nómina.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/gestion-de-empleados-3d-icon-png-download-10456344.png'
+    title: 'Gestión de Estudiantes',
+    description: 'Administra expedientes y seguimiento estudiantil.',
+    imageUrl: 'https://png.pngtree.com/png-clipart/20240318/original/pngtree-3d-render-student-studying-concept-png-image_14621216.png'
   },
   {
-    icon: Archive,
-    title: 'Inventario',
-    description: 'Controle su catálogo de productos y stock.',
-    imageUrl: 'https://png.pngtree.com/png-vector/20250205/ourmid/pngtree-inventory-management-software-featuring-3d-icon-isolated-on-a-transparent-background-png-image_15380981.png'
-  },
-   {
-    icon: ShoppingCart,
-    title: 'Punto de Venta (POS)',
-    description: 'TPV integrado que actualiza stock y contabilidad.',
-    imageUrl: 'https://png.pngtree.com/png-vector/20231023/ourmid/pngtree-3d-chart-illustrating-the-increasing-sales-growth-with-png-image_10172727.png'
+    icon: DollarSign,
+    title: 'Finanzas',
+    description: 'Contabilidad, facturación y cuentas por pagar/cobrar.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/grafico-de-finanzas-3d-icon-png-download-11304363.png'
   },
   {
     icon: AreaChart,
     title: 'Reportes y Analíticas',
     description: 'Informes de rentabilidad, ventas e inventario.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/reporte-de-analisis-3d-icon-png-download-4497657.png'
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/analysis-report-3d-icon-png-download-4497657.png'
   },
   {
     icon: UserSquare,
@@ -86,392 +87,217 @@ const features = [
     icon: Leaf,
     title: 'Gestión de Caficultores',
     description: 'Administra lotes, cultivos y trazabilidad del café.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/granos-de-cafe-en-un-recipiente-con-cuchara-3d-icon-png-download-12027615.png'
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/coffee-beans-in-a-bowl-with-spoon-3d-icon-png-download-12027615.png'
   },
   {
-    icon: AreaChart,
+    icon: HeartPulse, // Icon for Odontology
+    title: 'Módulo de Odontología',
+    description: 'Gestiona historias clínicas, odontogramas 3D y planes de tratamiento.',
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/dental-clinic-3d-icon-png-download-12541682.png'
+  },
+  {
+    icon: BarChart2,
     title: 'Analisis de datos y toma de decisiones',
     description: 'Visualiza y analiza la información para tomar decisiones inteligentes.',
-    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/analisis-de-datos-3d-icon-png-download-12839918.png'
+    imageUrl: 'https://cdn3d.iconscout.com/3d/premium/thumb/data-analysis-3d-icon-png-download-12839918.png'
   }
 ];
 
-const contactFormSchema = z.object({
-  name: z.string().min(2, 'El nombre es requerido.'),
-  email: z.string().email('Por favor, ingrese un correo válido.'),
-  message: z.string().min(10, 'El mensaje debe tener al menos 10 caracteres.'),
-});
-
-type ContactFormValues = z.infer<typeof contactFormSchema>;
-
-interface ContactFormProps {
-    onSuccess?: () => void;
-}
-
-const ContactForm = ({ onSuccess }: ContactFormProps) => {
-  const { toast } = useToast();
-  
-  const form = useForm<ContactFormValues>({
-    resolver: zodResolver(contactFormSchema),
-    defaultValues: { name: '', email: '', message: '' },
-  });
-
-  const onSubmit = async (data: ContactFormValues) => {
-    try {
-      await addContactMessage(data);
-      toast({
-        title: '¡Mensaje Enviado!',
-        description: 'Gracias por contactarnos. Nos pondremos en contacto contigo pronto.',
-      });
-      form.reset();
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo enviar tu mensaje. Por favor, intenta de nuevo.',
-        variant: 'destructive',
-      });
-    }
-  };
+export default function HomePage() {
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <Label>Nombre Completo</Label>
-              <FormControl>
-                <Input placeholder="Tu nombre" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <Label>Correo Electrónico</Label>
-              <FormControl>
-                <Input type="email" placeholder="tu@correo.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <Label>Mensaje</Label>
-              <FormControl>
-                <Textarea placeholder="¿Cómo podemos ayudarte?" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
-        </Button>
-      </form>
-    </Form>
-  )
-}
+    <div className="relative w-full min-h-screen bg-white overflow-x-hidden">
 
-
-export default function LandingPage() {
-  const bubbleSizes = ['w-4 h-4', 'w-8 h-8', 'w-3 h-3', 'w-6 h-6', 'w-5 h-5', 'w-7 h-7', 'w-2 h-2', 'w-4 h-4', 'w-5 h-5', 'w-8 h-8'];
-  const animationDetails = [
-    { duration: '18s', delay: '0s' }, { duration: '12s', delay: '1s' }, { duration: '15s', delay: '2s' },
-    { duration: '20s', delay: '0s' }, { duration: '22s', delay: '3s' }, { duration: '18s', delay: '1s' },
-    { duration: '16s', delay: '4s' }, { duration: '13s', delay: '2s' }, { duration: '19s', delay: '0s' },
-    { duration: '14s', delay: '3s' }
-  ];
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-       <header className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 z-20 absolute top-0 left-0 right-0">
-        <Link href="#" className="flex items-center gap-2 font-semibold" prefetch={false}>
-         <Image src="https://dprogramadores.com.co/img/logoD.png" alt="DigitalCenter Logo" width={32} height={32} />
-          <span className="text-2xl font-bold text-white">DigitalCenter</span>
-        </Link>
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4 text-white/80 hover:text-white" prefetch={false}>
-            Características
-          </Link>
-          <Link href="#pricing" className="text-sm font-medium hover:underline underline-offset-4 text-white/80 hover:text-white" prefetch={false}>
-            Precios
-          </Link>
-          <Link href="#contact" className="text-sm font-medium hover:underline underline-offset-4 text-white/80 hover:text-white" prefetch={false}>
-            Contacto
-          </Link>
-          <Link href="/login" prefetch={false}>
-            <Button className="bg-green-500 text-white hover:bg-green-600">Iniciar Sesión</Button>
-          </Link>
-          <Link href="/signup" prefetch={false}>
-            <Button className="bg-white text-primary hover:bg-white/90">Registrarse Gratis</Button>
-          </Link>
-        </nav>
-        <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10 hover:text-white">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Abrir menú</span>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-                <nav className="grid gap-6 text-lg font-medium mt-8">
-                    <Link href="#" className="flex items-center gap-2 font-semibold" prefetch={false}>
-                        <Image src="https://dprogramadores.com.co/img/logoD.png" alt="DigitalCenter Logo" width={24} height={24} />
-                        <span className="text-lg font-bold">DigitalCenter</span>
-                    </Link>
-                    <Link href="#features" className="text-muted-foreground hover:text-foreground">Características</Link>
-                    <Link href="#pricing" className="text-muted-foreground hover:text-foreground">Precios</Link>
-                    <Link href="#contact" className="text-muted-foreground hover:text-foreground">Contacto</Link>
-                     <div className="flex flex-col gap-4 pt-4">
-                        <Link href="/login" prefetch={false}>
-                            <Button className="w-full bg-green-500 text-white hover:bg-green-600">Iniciar Sesión</Button>
-                        </Link>
-                        <Link href="/signup" prefetch={false}>
-                            <Button className="w-full">Registrarse Gratis</Button>
-                        </Link>
-                    </div>
-                </nav>
-            </SheetContent>
-        </Sheet>
+      {/* Header */}
+      <header className="absolute top-0 left-0 w-full z-30 px-4 py-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-white text-xl font-bold">DigitalCenter</span>
+          </div>
+          <nav className="hidden md:flex items-center space-x-6">
+            <a href="#features" className="text-white hover:text-gray-200">Características</a>
+            <a href="#pricing" className="text-white hover:text-gray-200">Precios</a>
+            <a href="#contact" className="text-white hover:text-gray-200">Contacto</a>
+          </nav>
+          <div className="flex items-center space-x-4">
+            <Link href="/login">
+              <Button className="bg-green-500 text-white hover:bg-green-600 shadow-lg transform hover:scale-105 transition-transform">Iniciar Sesión</Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="bg-white text-purple-600 hover:bg-gray-200">Registrarse Gratis</Button>
+            </Link>
+          </div>
+        </div>
       </header>
-      <main className="flex-1">
-        <section 
-          className="relative w-full h-[90vh] min-h-[600px] flex items-center justify-center text-white bg-gradient-to-br from-purple-600 via-pink-500 to-cyan-400 overflow-hidden"
-        >
-             <div className="absolute top-0 left-0 w-full h-full z-[1]">
-              {Array.from({ length: 10 }).map((_, i) => (
-                  <div
-                  key={i}
-                  className={`absolute bottom-[-150px] bg-white/10 rounded-full animate-float-bubbles ${bubbleSizes[i % bubbleSizes.length]}`}
-                  style={{
-                      left: `${Math.random() * 100}%`,
-                      animationDuration: animationDetails[i % animationDetails.length].duration,
-                      animationDelay: animationDetails[i % animationDetails.length].delay,
-                  }}
-                  />
-              ))}
-            </div>
-             <div className="container px-4 md:px-6 z-10 pt-20">
-                <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-12 text-center md:text-left">
-                    <div className="flex flex-col items-center md:items-start justify-center space-y-4 animate-fade-in-up">
-                        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl flex flex-col items-center md:items-start">
-                           <span>La Plataforma de Gestión</span>
-                           <span className="text-cyan-300">Todo-en-Uno</span>
-                        </h1>
-                        <p className="max-w-2xl text-lg text-white/80 md:text-xl">
-                        DigitalCenter centraliza la gestión Académica, Financiera y de Recursos Humanos para llevar su institución al siguiente nivel.
-                        </p>
-                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Link href="/signup" prefetch={false}>
-                                <Button size="lg" className="bg-white text-primary hover:bg-gray-200 w-full sm:w-auto">Empezar Ahora</Button>
-                            </Link>
-                             <Link href="/login" prefetch={false}>
-                                <Button size="lg" className="w-full sm:w-auto bg-green-500 text-white hover:bg-green-600">Iniciar Sesión</Button>
-                            </Link>
-                        </div>
-                    </div>
-                     <div className="relative w-60 h-60 md:w-80 md:h-80 lg:w-96 lg:h-96 shrink-0 animate-float">
-                        <div className="absolute inset-0 text-white">
-                           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                                <path fill="#ffffff" d="M48.1,-58.3C62.5,-46.9,73.4,-31,75.4,-14.6C77.4,1.8,70.5,18.8,60.8,33.5C51.1,48.2,38.6,60.6,23.6,68.4C8.6,76.2,-8.8,79.3,-25.5,74.5C-42.2,69.7,-58.1,57,-68.2,41.9C-78.3,26.8,-82.6,9.3,-79.9,-6.5C-77.2,-22.3,-67.5,-36.4,-54.8,-47.5C-42.1,-58.6,-26.4,-66.7,-9.4,-69.1C7.6,-71.5,24.6,-68.2,38.8,-59.8C53,-51.4,48.1,-58.3,48.1,-58.3Z" transform="translate(100 100) scale(1.4)"></path>
-                            </svg>
-                        </div>
-                        <Image
-                            src="https://dprogramadores.com.co/img/logoD.png"
-                            alt="DigitalCenter Logo"
-                            layout="fill"
-                            objectFit="contain"
-                            className="relative z-10 p-12"
-                        />
-                    </div>
-                </div>
-            </div>
-             <div className="absolute bottom-0 left-0 w-full h-[150px] z-[5] overflow-hidden">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none">
+      
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center text-white text-center px-4 overflow-hidden">
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-cyan-400 z-0"></div>
+        <Bubbles />
+        <div className="absolute bottom-0 left-0 w-full h-[15vh] z-10">
+            <div className="relative w-full h-full">
+                <svg className="absolute bottom-0 w-full h-auto" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none">
                     <defs>
                         <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
                     </defs>
-                    <g className="fill-background">
-                        <use xlinkHref="#gentle-wave" x="50" y="0" className="animate-move-forever opacity-40" style={{ animationDelay: '-2s', animationDuration: '4s' }} />
-                        <use xlinkHref="#gentle-wave" x="50" y="3" className="animate-move-forever opacity-50" style={{ animationDelay: '-3s', animationDuration: '5s' }} />
-                        <use xlinkHref="#gentle-wave" x="50" y="6" className="animate-move-forever opacity-20" style={{ animationDelay: '-4s', animationDuration: '6s' }} />
-                        <use xlinkHref="#gentle-wave" x="50" y="9" className="animate-move-forever" style={{ animationDelay: '-5s', animationDuration: '7s' }} />
+                    <g className="parallax">
+                        <use xlinkHref="#gentle-wave" x="50" y="0" fill="rgba(255,255,255,0.7)" className="animate-move-forever" />
+                        <use xlinkHref="#gentle-wave" x="50" y="3" fill="rgba(255,255,255,0.5)" className="animate-move-forever" style={{animationDelay: '-2s', animationDuration: '7s'}}/>
+                        <use xlinkHref="#gentle-wave" x="50" y="5" fill="rgba(255,255,255,0.3)" className="animate-move-forever" style={{animationDelay: '-4s', animationDuration: '10s'}}/>
+                        <use xlinkHref="#gentle-wave" x="50" y="7" fill="#fff" className="animate-move-forever" style={{animationDelay: '-5s', animationDuration: '13s'}}/>
                     </g>
                 </svg>
             </div>
-        </section>
-        
-        <section id="features" className="w-full bg-background py-12 md:py-24">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Nuestros Módulos</div>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Una solución para cada necesidad</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Desde la Gestión de estudiantes y calificaciones hasta la Contabilidad y el Inventario, DigitalCenter tiene todo lo que necesita.
-              </p>
-            </div>
-            <FeaturesCarousel features={features} />
-          </div>
-        </section>
-
-
-        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Precios flexibles para cada Institución</h2>
-              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Elija el plan que mejor se adapte a sus necesidades. Contáctanos para una demostración personalizada.
-              </p>
-            </div>
-            <div className="grid w-full grid-cols-1 gap-6 pt-12 md:grid-cols-3 max-w-5xl mx-auto">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Básico</CardTitle>
-                  <CardDescription>Para instituciones pequeñas que recién comienzan.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-4xl font-bold">$199.000<span className="text-xl text-muted-foreground"> COP/mes</span></div>
-                  <ul className="space-y-2 text-left text-sm">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Módulo académico</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Módulo de estudiantes</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Soporte por correo</li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" variant="outline">Seleccionar Plan</Button>
-                </CardFooter>
-              </Card>
-               <Card className="border-2 border-primary relative bg-white shadow-2xl">
-                <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
-                   <div className="inline-block rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground">Más Popular</div>
-                </div>
-                <CardHeader>
-                  <CardTitle>Profesional</CardTitle>
-                  <CardDescription>La solución completa para instituciones en crecimiento.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-4xl font-bold">$399.000<span className="text-xl text-muted-foreground"> COP/mes</span></div>
-                   <ul className="space-y-2 text-left text-sm">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Todo en el plan Básico</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Módulo financiero</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Módulo de RRHH</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Reportes y analíticas</li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full">Seleccionar Plan</Button>
-                </CardFooter>
-              </Card>
-               <Card>
-                <CardHeader>
-                  <CardTitle>Empresarial</CardTitle>
-                  <CardDescription>Para grandes organizaciones con necesidades avanzadas.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-4xl font-bold">Contáctenos</div>
-                  <ul className="space-y-2 text-left text-sm">
-                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Todo en el plan Profesional</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Módulos de inventario y ventas (POS)</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Soporte prioritario y personalizado</li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" variant="outline">Contactar</Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="relative w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-purple-600 via-pink-500 to-cyan-400 text-white overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-full z-[1]">
-              {Array.from({ length: 10 }).map((_, i) => (
-                  <div
-                  key={i}
-                  className={`absolute bottom-[-150px] bg-white/10 rounded-full animate-float-bubbles ${bubbleSizes[i % bubbleSizes.length]}`}
-                  style={{
-                      left: `${Math.random() * 100}%`,
-                      animationDuration: animationDetails[i % animationDetails.length].duration,
-                      animationDelay: animationDetails[i % animationDetails.length].delay,
-                  }}
-                  />
-              ))}
-            </div>
-          <div className="container grid items-center justify-center gap-10 px-4 md:px-6 lg:grid-cols-2 lg:gap-16 z-10 relative">
-            <div className="space-y-4">
-              <div className="inline-block rounded-lg bg-white/20 px-3 py-1 text-sm">Contáctanos</div>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">¿listo para empezar?</h2>
-              <p className="max-w-[600px] text-white/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Nos encantaría saber de ti. Completa el formulario y uno de nuestros especialistas se pondrá en contacto para programar una demostración gratuita y sin compromiso.
-              </p>
-              <p className="text-white/80">
-                Recuerda que también puedes registrarte para una prueba gratuita de 15 días y explorar la plataforma por tu cuenta.
-              </p>
-               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <Button asChild size="lg" className="bg-white text-primary hover:bg-gray-200">
-                        <a href="#contact-form">
-                            <Mail className="mr-2"/> Dejar un Mensaje
-                        </a>
-                    </Button>
-                    <Button asChild size="lg" className="bg-green-500 text-white hover:bg-green-600">
-                        <a href="/signup">
-                            <Check className="mr-2"/> Iniciar Prueba Gratuita
-                        </a>
-                    </Button>
-                </div>
-            </div>
-            <Card id="contact-form" className="w-full max-w-md bg-background/90 backdrop-blur-sm text-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5"/>
-                  Escríbenos
-                </CardTitle>
-                <CardDescription>Déjanos tus datos y te responderemos lo antes posible.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ContactForm />
-              </CardContent>
-            </Card>
-          </div>
-            <div className="absolute bottom-0 left-0 w-full h-[150px] z-[5] overflow-hidden">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none">
-                    <defs>
-                        <path id="gentle-wave-contact" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
-                    </defs>
-                    <g className="fill-muted">
-                        <use xlinkHref="#gentle-wave-contact" x="50" y="0" className="animate-move-forever opacity-40" style={{ animationDelay: '-2s', animationDuration: '4s' }} />
-                        <use xlinkHref="#gentle-wave-contact" x="50" y="3" className="animate-move-forever opacity-50" style={{ animationDelay: '-3s', animationDuration: '5s' }} />
-                        <use xlinkHref="#gentle-wave-contact" x="50" y="6" className="animate-move-forever opacity-20" style={{ animationDelay: '-4s', animationDuration: '6s' }} />
-                        <use xlinkHref="#gentle-wave-contact" x="50" y="9" className="animate-move-forever" style={{ animationDelay: '-5s', animationDuration: '7s' }} />
-                    </g>
-                </svg>
-            </div>
-        </section>
-      </main>
-      <footer className="w-full border-t bg-muted">
-        <div className="container flex flex-col gap-4 sm:flex-row py-6 items-center justify-between px-4 md:px-6">
-          <p className="text-xs text-muted-foreground">&copy; 2024 DProgramadores. Todos los derechos reservados.</p>
-           <Link href="#" className="flex items-center gap-2 font-semibold" prefetch={false}>
-              <Image src="https://dprogramadores.com.co/img/logoD.png" alt="DigitalCenter Logo" width={24} height={24} />
-              <span className="text-lg font-bold">DigitalCenter</span>
-            </Link>
         </div>
+
+        <div className="relative z-20 flex flex-col md:flex-row items-center justify-between container mx-auto">
+            <div className="md:w-1/2 text-left mb-10 md:mb-0">
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">La Plataforma de Gestión <br /> <span className='text-cyan-300'>Todo-en-Uno</span></h1>
+                <p className="text-lg md:text-xl mb-8">
+                DigitalCenter centraliza la gestión Académica, Financiera y de Recursos <br /> Humanos para llevar su institución al siguiente nivel.
+                </p>
+                <div className="flex space-x-4">
+                  <Link href="/signup">
+                    <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-200 shadow-lg transform hover:scale-105 transition-transform">Empezar Ahora</Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button size="lg" className="bg-green-500 text-white hover:bg-green-600 shadow-lg transform hover:scale-105 transition-transform">Iniciar Sesión</Button>
+                  </Link>
+                </div>
+            </div>
+            <div className="md:w-1/2 flex justify-center animate-float">
+                <div className="relative w-80 h-80 md:w-[450px] md:h-[450px]">
+                    <div className="absolute inset-0 rounded-[40px] bg-white/10 backdrop-blur-md animate-pulse-slow shadow-purple-glow-lg"></div>
+                    <div className="absolute inset-6 rounded-[30px] border-4 border-cyan-300 animate-spin-slow shadow-blue-glow-lg"></div>
+                    <div className="absolute inset-12 rounded-[20px] border-4 border-pink-400 animate-spin-reverse-slow"></div>
+                    <img src="https://dprogramadores.com.co/img/logoD.png" alt="DProgramadores Logo" className="w-64 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+                </div>
+            </div>
+        </div>
+      </section>
+      
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">Una solución para cada necesidad</h2>
+          <p className="text-gray-600 mb-12 max-w-2xl mx-auto">Desde la gestión de estudiantes y calificaciones hasta la Contabilidad y el Inventario, DigitalCenter tiene todo lo que necesita.</p>
+          <FeaturesCarousel features={features} />
+        </div>
+      </section>
+      
+       {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-gray-50">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">Precios flexibles para cada Institución</h2>
+          <p className="text-gray-600 mb-12 max-w-2xl mx-auto">Elija el plan que mejor se adapte a sus necesidades. Contáctanos para una demostración personalizada.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            
+            {/* Basic Plan */}
+            <div className="border rounded-lg p-8">
+              <h3 className="text-2xl font-bold mb-4">Básico</h3>
+              <p className="text-gray-500 mb-6">Para instituciones pequeñas que recién comienzan.</p>
+              <p className="text-4xl font-bold mb-4">$199.000 <span className="text-lg font-normal">COP/mes</span></p>
+              <ul className="text-left space-y-2 mb-8">
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Módulo académico</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Módulo de estudiantes</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Soporte por correo</li>
+              </ul>
+              <Button variant="outline" className="w-full">Seleccionar Plan</Button>
+            </div>
+
+            {/* Professional Plan */}
+            <div className="border-2 border-purple-600 rounded-lg p-8 relative shadow-lg">
+               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-bold">Más Popular</div>
+              <h3 className="text-2xl font-bold mb-4">Profesional</h3>
+              <p className="text-gray-500 mb-6">La solución completa para instituciones en crecimiento.</p>
+              <p className="text-4xl font-bold mb-4">$399.000 <span className="text-lg font-normal">COP/mes</span></p>
+               <ul className="text-left space-y-2 mb-8">
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Todo en el plan Básico</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Módulo financiero</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Módulo de RRHH</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Reportes y analíticas</li>
+              </ul>
+              <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">Seleccionar Plan</Button>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="border rounded-lg p-8">
+              <h3 className="text-2xl font-bold mb-4">Empresarial</h3>
+              <p className="text-gray-500 mb-6">Para grandes organizaciones con necesidades avanzadas.</p>
+              <p className="text-4xl font-bold mb-4">Contáctenos</p>
+               <ul className="text-left space-y-2 mb-8">
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Todo en el plan Profesional</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Módulos de inventario y ventas (POS)</li>
+                <li className="flex items-center"><CheckSquare className="h-5 w-5 text-green-500 mr-2" /> Soporte prioritario y personalizado</li>
+              </ul>
+              <Button variant="outline" className="w-full">Contactar</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="relative text-white py-20 px-4">
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-cyan-400 z-0"></div>
+        <Bubbles />
+        <div className="container mx-auto relative z-20 grid md:grid-cols-2 gap-12 items-center">
+          <div className="text-left">
+            <Button variant="outline" className="bg-transparent border-white text-white mb-4">Contáctanos</Button>
+            <h2 className="text-4xl font-bold my-4">¿Listo para empezar?</h2>
+            <p className="mb-6">
+              Nos encantaría saber de ti. Completa el formulario y uno de nuestros especialistas se pondrá en contacto para programar una demostración gratuita y sin compromiso.
+            </p>
+            <p className="text-sm">
+                Recuerda que también puedes registrarte para una prueba gratuita de 15 días y explorar la plataforma por tu cuenta.
+            </p>
+            <div className="flex space-x-4 mt-6">
+                <Button variant="outline" className="bg-white text-purple-600 hover:bg-gray-200"><CheckSquare className="h-5 w-5 mr-2"/>Dejar un Mensaje</Button>
+                <Link href="/signup">
+                    <Button className="bg-green-500 text-white hover:bg-green-600">Iniciar Prueba Gratuita</Button>
+                </Link>
+            </div>
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm p-8 rounded-lg shadow-2xl">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center"><FileText className="h-6 w-6 mr-2"/>Escríbenos</h3>
+              <p className="text-gray-600 mb-6">Déjanos tus datos y te responderemos lo antes posible.</p>
+              <form>
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Nombre Completo</label>
+                  <input type="text" id="name" placeholder="Tu nombre" className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none bg-gray-50" />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                  <input type="email" id="email" placeholder="tu@correo.com" className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none bg-gray-50" />
+                </div>
+                <div className="mb-6">
+                  <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Mensaje</label>
+                  <textarea id="message" rows={4} placeholder="¿Cómo podemos ayudarte?" className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none bg-gray-50"></textarea>
+                </div>
+                <Button className="w-full bg-gray-800 text-white hover:bg-gray-900">Enviar Mensaje</Button>
+              </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white py-4">
+          <div className="container mx-auto text-center text-sm text-gray-500">
+              <span>© 2024 DProgramadores. Todos los derechos reservados.</span>
+          </div>
       </footer>
 
-      <ContactWidget />
+       {/* Chat Widget */}
+        <div className="fixed bottom-4 right-4 z-50">
+            {!isChatOpen && (
+                <Button onClick={() => setIsChatOpen(true)} className="rounded-full w-16 h-16 bg-gray-800 hover:bg-gray-900 shadow-lg">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                </Button>
+            )}
+            {isChatOpen && (
+                <ChatWidget onClose={() => setIsChatOpen(false)} />
+            )}
+        </div>
     </div>
   );
 }

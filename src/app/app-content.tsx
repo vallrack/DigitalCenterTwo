@@ -1,7 +1,8 @@
+
 // /src/app/app-content.tsx
 "use client";
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -22,7 +23,7 @@ import {
   Archive,
   ShoppingCart,
   AreaChart,
-  BarChart, // Importado
+  BarChart,
   UserSquare,
   Mail,
   Leaf,
@@ -110,7 +111,6 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
   
   const getVisibleNavLinks = () => {
     const userRole = userProfile.role;
-    // SuperAdmin sees all links regardless of modules.
     if (userRole === 'SuperAdmin') {
         return allNavLinks;
     }
@@ -258,7 +258,6 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
   )
 }
 
-
 export function AppContent({
   children,
   headerAlert,
@@ -267,9 +266,12 @@ export function AppContent({
   headerAlert?: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isPrinting = searchParams.get('print') === 'true';
+
   const isPublicPage = ['/', '/login', '/signup', '/pending-approval'].includes(pathname) || pathname.startsWith('/o/');
   
-  if (isPublicPage) {
+  if (isPublicPage || isPrinting) {
     return <>{children}</>;
   }
 
