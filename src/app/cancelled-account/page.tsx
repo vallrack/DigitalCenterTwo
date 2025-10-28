@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogOut, XCircle } from "lucide-react";
-import { Suspense } from 'react';
 
 function CancelledAccount() {
   const router = useRouter();
@@ -48,10 +47,4 @@ function CancelledAccount() {
   );
 }
 
-export default function CancelledAccountPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CancelledAccount />
-    </Suspense>
-  )
-}
+export default CancelledAccount;
