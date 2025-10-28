@@ -2,7 +2,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -14,8 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogOut, XCircle } from "lucide-react";
+import { Suspense } from 'react';
 
-export default function CancelledAccountPage() {
+function CancelledAccount() {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -46,4 +46,12 @@ export default function CancelledAccountPage() {
       </Card>
     </div>
   );
+}
+
+export default function CancelledAccountPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CancelledAccount />
+    </Suspense>
+  )
 }
