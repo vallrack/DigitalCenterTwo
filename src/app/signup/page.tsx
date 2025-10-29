@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Organization } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 type SelectedModules = Partial<Organization['modules']>;
 
 const moduleLabels: { id: keyof Organization['modules']; label: string, description: string }[] = [
