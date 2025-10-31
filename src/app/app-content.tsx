@@ -28,6 +28,8 @@ import {
   Mail,
   Leaf,
   HeartPulse,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 import {
@@ -61,6 +63,7 @@ import { ChatClient } from '@/components/chat-client';
 import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
 import type { UserRole, Organization } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 type NavLink = {
   href: string;
@@ -91,8 +94,9 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
   const { user, userProfile, organization } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, setOpen, state } = useSidebar();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const collapsed = state === 'collapsed';
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -128,11 +132,46 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
     <>
        <Sidebar collapsible="icon" className="bg-[hsl(var(--sidebar-background))]">
         <SidebarHeader>
-          <div className="flex h-14 items-center gap-2 p-2 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute right-0 top-3 translate-x-1/2 rounded-full text-foreground/50 hover:text-foreground",
+              !collapsed && "hidden"
+            )}
+            onClick={() => setOpen(true)}
+          >
+            <PanelLeftOpen />
+            <span className="sr-only">Expandir</span>
+          </Button>
+          <div
+            className={cn(
+              "flex h-14 items-center gap-2 overflow-hidden p-2 px-4 transition-all",
+              collapsed && "gap-0 p-2"
+            )}
+          >
              <Image src="https://dprogramadores.com.co/img/logoD.png" alt="DigitalCenter Logo" width={32} height={32} />
-            <span className="text-xl font-semibold text-sidebar-foreground">
+            <span
+              className={cn(
+                "whitespace-nowrap text-xl font-semibold text-sidebar-foreground",
+                collapsed && "sr-only"
+              )}
+            >
               DigitalCenter
             </span>
+            <div className="flex-1" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "-mr-2 shrink-0 rounded-full text-foreground/50 hover:text-foreground",
+                collapsed && "hidden"
+              )}
+              onClick={() => setOpen(false)}
+            >
+              <PanelLeftClose />
+              <span className="sr-only">Contraer</span>
+            </Button>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -144,12 +183,15 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
                       asChild
                       tooltip={{ children: label }}
                       isActive={pathname.startsWith(href) && (href !== '/dashboard' || pathname === '/dashboard')}
-                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
+                      className={cn(
+                        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+                        collapsed && "justify-center"
+                      )}
                       onClick={handleLinkClick}
                     >
                       <Link href={href}>
                         <Icon />
-                        {label}
+                        <span className={cn("whitespace-nowrap", collapsed && "sr-only")}>{label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -163,19 +205,26 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
                   <SidebarMenuButton
                     onClick={() => setIsChatOpen(true)}
                     tooltip={{ children: "Chat" }}
-                    className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
+                    className={cn(
+                        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+                        collapsed && "justify-center"
+                    )}
                   >
                     <MessageSquare />
-                    Chat
+                    <span className={cn("whitespace-nowrap", collapsed && "sr-only")}>Chat</span>
                   </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
+                  className={cn(
+                    "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+                    collapsed && "justify-center"
+                  )}
+                  tooltip={{ children: "Cerrar sesión" }}
                 >
                   <LogOut />
-                  Cerrar Sesión
+                  <span className={cn("whitespace-nowrap", collapsed && "sr-only")}>Cerrar Sesión</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

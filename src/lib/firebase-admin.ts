@@ -2,6 +2,7 @@
 import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getMessaging } from 'firebase-admin/messaging';
 
 let adminApp: App;
 
@@ -21,3 +22,4 @@ if (!getApps().length) {
 
 export const db = getFirestore(adminApp);
 export const auth = getAuth(adminApp);
+export const messaging = getMessaging(adminApp);
