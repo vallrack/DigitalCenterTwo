@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { FeaturesCarousel } from './features-carousel';
 import Bubbles from './bubbles'; 
 import { AreaChart, Briefcase, Calendar, CheckSquare, FileText, HeartPulse, Home, Users, X, ShoppingCart, Truck, Wrench, Building2, Bell, BookOpen, Utensils, Leaf, Shield, UserSquare, DollarSign, BarChart2, Factory, MessageSquare } from 'lucide-react';
@@ -110,7 +111,7 @@ export default function HomePage() {
     <div className="relative w-full min-h-screen bg-white overflow-x-hidden">
 
       {/* Header */}
-      <header className="absolute top-0 left-0 w-full z-30 px-4 py-4">
+      <header className="absolute top-0 left-0 w-full z-50 px-4 py-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <span className="text-white text-xl font-bold">DigitalCenter</span>
@@ -168,10 +169,10 @@ export default function HomePage() {
             </div>
             <div className="md:w-1/2 flex justify-center animate-float">
                 <div className="relative w-80 h-80 md:w-[450px] md:h-[450px]">
-                    <div className="absolute inset-0 rounded-[40px] bg-white/10 backdrop-blur-md animate-pulse-slow shadow-purple-glow-lg"></div>
-                    <div className="absolute inset-6 rounded-[30px] border-4 border-cyan-300 animate-spin-slow shadow-blue-glow-lg"></div>
-                    <div className="absolute inset-12 rounded-[20px] border-4 border-pink-400 animate-spin-reverse-slow"></div>
-                    <img src="https://dprogramadores.com.co/img/logoD.png" alt="DProgramadores Logo" className="w-64 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+                    <div className="absolute inset-0 rounded-[40px] bg-white/10 backdrop-blur-md animate-pulse-slow shadow-purple-glow-lg z-10"></div>
+                    <div className="absolute inset-6 rounded-[30px] border-4 border-cyan-300 animate-spin-slow shadow-blue-glow-lg z-20"></div>
+                    <div className="absolute inset-12 rounded-[20px] border-4 border-pink-400 animate-spin-reverse-slow z-30"></div>
+                    <img src="https://dprogramadores.com.co/img/logoD.png" alt="DProgramadores Logo" className="w-64 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40"/>
                 </div>
             </div>
         </div>
@@ -252,14 +253,14 @@ export default function HomePage() {
                 Recuerda que también puedes registrarte para una prueba gratuita de 15 días y explorar la plataforma por tu cuenta.
             </p>
             <div className="flex space-x-4 mt-6">
-                <Button variant="outline" className="bg-white text-purple-600 hover:bg-gray-200"><CheckSquare className="h-5 w-5 mr-2"/>Dejar un Mensaje</Button>
+                <Button variant="outline" className="bg-white text-purple-600 hover:bg-gray-200"><CheckSquare className="h-5 w-5 mr-2" />Dejar un Mensaje</Button>
                 <Link href="/signup">
                     <Button className="bg-green-500 text-white hover:bg-green-600">Iniciar Prueba Gratuita</Button>
                 </Link>
             </div>
           </div>
           <div className="bg-white/90 backdrop-blur-sm p-8 rounded-lg shadow-2xl">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center"><FileText className="h-6 w-6 mr-2"/>Escríbenos</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center"><FileText className="h-6 w-6 mr-2" />Escríbenos</h3>
               <p className="text-gray-600 mb-6">Déjanos tus datos y te responderemos lo antes posible.</p>
               <form>
                 <div className="mb-4">

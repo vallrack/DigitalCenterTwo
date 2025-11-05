@@ -3,6 +3,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
+import { OdontogramState } from '@/lib/types';
 
 // Dynamically import the new 3D odontogram component with SSR turned off.
 const Odontograma3D = dynamic(() => import('./odontogram-3d'), {
@@ -16,6 +18,8 @@ const Odontograma3D = dynamic(() => import('./odontogram-3d'), {
  * of the Odontograma3D component.
  */
 export function OdontogramClient() {
+  const [odontogramState, setOdontogramState] = useState<OdontogramState>({});
+
   return (
     <Card>
       <CardHeader>
@@ -24,7 +28,10 @@ export function OdontogramClient() {
       <CardContent>
         {/* The container for the 3D scene needs a specific height and relative positioning. */}
         <div style={{ height: '70vh', width: '100%', position: 'relative', overflow: 'hidden' }}>
-          <Odontograma3D />
+          <Odontograma3D
+            initialState={odontogramState}
+            onStateChange={setOdontogramState}
+          />
         </div>
       </CardContent>
     </Card>

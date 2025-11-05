@@ -1,8 +1,10 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from './providers';
 import { Suspense } from 'react';
+import { LoadingScreen } from '@/components/loading-screen'; // Import the new component
 
 export const metadata: Metadata = {
   title: 'DigitalCenter',
@@ -29,7 +31,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<LoadingScreen />}>
           <Providers>{children}</Providers>
         </Suspense>
         <div className="print:hidden">

@@ -1,0 +1,25 @@
+import { Condition } from "@/lib/types";
+
+export const conditions: Condition[] = [
+    { symbol: 'S', condition: 'Sano', color: 'black', type: 'text' },
+    { symbol: '+', condition: 'Caries', color: '#e74c3c', type: 'text' },
+    { symbol: '●', condition: 'Obturación adaptada', color: '#3498db', type: 'circle' },
+    { symbol: '●', condition: 'Obturación desadaptada', color: '#e74c3c', type: 'circle' },
+    { symbol: 'X', condition: 'Exodoncia indicada', color: '#e74c3c', type: 'text' },
+    { symbol: '△', condition: 'Endodoncia realizada', color: '#3498db', type: 'triangle' },
+    { symbol: '△', condition: 'Endodoncia indicada', color: '#e74c3c', type: 'triangle' },
+    { symbol: 'S', condition: 'Sellante buen estado', color: '#3498db', type: 'text' },
+    { symbol: 'S', condition: 'Sellante mal estado', color: '#e74c3c', type: 'text' },
+    { symbol: 'O', condition: 'Corona buen estado', color: '#3498db', type: 'text' },
+    { symbol: 'O', condition: 'Corona mal estado', color: '#e74c3c', type: 'text' },
+    { symbol: '—', condition: 'Diente sin erupcionar', color: '#3498db', type: 'line' },
+    { symbol: '|', condition: 'Diente ausente', color: '#3498db', type: 'line' },
+    { symbol: '⌒', condition: 'Obturación cervical desadaptada', color: '#e74c3c', type: 'arc' },
+    { symbol: '⌒', condition: 'Obturación cervical adaptada', color: '#3498db', type: 'arc' },
+    { symbol: 'FX', condition: 'Fractura dental', color: '#e74c3c', type: 'text' },
+    { symbol: 'CT', condition: 'Cemento temporal', color: '#e74c3c', type: 'text' },
+    { symbol: 'O(P)', condition: 'Provisional mal estado', color: '#e74c3c', type: 'text' },
+    { symbol: 'O(P)', condition: 'Provisional buen estado', color: '#3498db', type: 'text' },
+    { symbol: '⊙', condition: 'Resina/Ionómero', color: '#27ae60', type: 'circle-dot' },
+    { symbol: '◆', condition: 'Perno/Muñón', color: '#3498db', type: 'diamond' },
+];

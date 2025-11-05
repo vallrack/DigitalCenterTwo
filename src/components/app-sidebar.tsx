@@ -1,3 +1,4 @@
+
 // /src/components/app-sidebar.tsx
 "use client"
 
@@ -23,6 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Logo } from "./logo"
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -38,10 +40,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex h-14 items-center gap-2 p-2 px-4">
-          <span className="text-xl font-semibold text-sidebar-foreground">
-            DigitalCenter
-          </span>
+        <div className="flex h-14 items-center justify-center p-2 px-4">
+          <Logo />
         </div>
       </SidebarHeader>
       <SidebarContent>

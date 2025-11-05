@@ -3,9 +3,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { signOut } from 'firebase/auth';
 import {
   Bell,
@@ -17,7 +16,6 @@ import {
   MessageSquare,
   LayoutDashboard,
   UserPlus,
-  GraduationCap,
   BookOpen,
   DollarSign,
   Archive,
@@ -64,6 +62,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
 import type { UserRole, Organization } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/logo';
 
 type NavLink = {
   href: string;
@@ -84,7 +83,7 @@ const allNavLinks: NavLink[] = [
   { href: '/inventory', label: 'Inventario', icon: Archive, requiredModule: 'inventory', roles: ['Admin', 'SuperAdmin'] },
   { href: '/sales', label: 'Ventas (POS)', icon: ShoppingCart, requiredModule: 'sales', roles: ['Admin', 'Ventas', 'SuperAdmin'] },
   { href: '/caficultores', label: 'Gestion Caficultores', icon: Leaf },
-  { href: '/analysis', label: 'Análisis de Datos', icon: BarChart }, // ¡Añadido aquí!
+  { href: '/analysis', label: 'Análisis de Datos', icon: BarChart },
   { href: '/odontology', label: 'Odontología', icon: HeartPulse, requiredModule: 'odontology', roles: ['Admin', 'SuperAdmin'] },
   { href: '/communications', label: 'Comunicaciones', icon: Mail, requiredModule: 'communications', roles: ['Admin', 'Ventas', 'Marketing', 'SuperAdmin'] },
   { href: '/reports', label: 'Reportes', icon: AreaChart, requiredModule: 'reports', roles: ['Admin', 'Finanzas', 'SuperAdmin'] },
@@ -146,19 +145,11 @@ function MainContent({ children, headerAlert }: { children: React.ReactNode, hea
           </Button>
           <div
             className={cn(
-              "flex h-14 items-center gap-2 overflow-hidden p-2 px-4 transition-all",
-              collapsed && "gap-0 p-2"
+              "flex h-14 items-center overflow-hidden p-2 px-4 transition-all",
+              collapsed && "p-2"
             )}
           >
-             <Image src="https://dprogramadores.com.co/img/logoD.png" alt="DigitalCenter Logo" width={32} height={32} />
-            <span
-              className={cn(
-                "whitespace-nowrap text-xl font-semibold text-sidebar-foreground",
-                collapsed && "sr-only"
-              )}
-            >
-              DigitalCenter
-            </span>
+            <Logo isCollapsed={collapsed} />
             <div className="flex-1" />
             <Button
               variant="ghost"
