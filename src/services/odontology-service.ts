@@ -29,6 +29,7 @@ const flattenPatientData = (docSnap: any): Patient => {
         odontogramState: data.odontogramState,
         generalNotes: data.generalNotes,
         odontogramScreenshot: data.odontogramScreenshot,
+        followUps: data.followUps || [], // <-- FIX: Ensure followUps are retrieved
         // Flatten contact details
         phone: data.contact?.phone,
         email: data.contact?.email,
@@ -41,7 +42,7 @@ const flattenPatientData = (docSnap: any): Patient => {
         chronicDiseases: data.medicalHistory?.chronicDiseases,
         surgeries: data.medicalHistory?.surgeries,
         habits: data.medicalHistory?.habits,
-    };
+    } as Patient;
 };
 
 // GET ALL PATIENTS
@@ -86,6 +87,7 @@ export const addPatient = async (
     registrationDate: new Date(),
     odontogramState: {},
     generalNotes: "",
+    followUps: [], // <-- FIX: Initialize followUps array
     contact: {
       phone: patient.phone || null,
       email: patient.email || null,
@@ -114,17 +116,21 @@ export const updatePatient = async (
   const docRef = doc(db, PATIENTS_COLLECTION, id);
   const dataToUpdate: { [key: string]: any } = {};
 
+  // This loop structure allows for updating nested and top-level fields.
+  // 'followUps' is a top-level field and will be updated correctly.
   for (const key in updatedData) {
     if (Object.prototype.hasOwnProperty.call(updatedData, key)) {
       const value = updatedData[key as keyof Patient];
       
-      if (key === 'id') continue; // Do not write the ID to the document fields
+      if (key === 'id') continue;
 
       if (['phone', 'email', 'address', 'department', 'municipality'].includes(key)) {
+        // Use dot notation for nested fields in Firestore
         dataToUpdate[`contact.${key}`] = value;
       } else if (['allergies', 'currentMedications', 'chronicDiseases', 'surgeries', 'habits'].includes(key)) {
         dataToUpdate[`medicalHistory.${key}`] = value;
       } else {
+        // Direct update for top-level fields like 'name', 'age', 'odontogramState', 'followUps', etc.
         dataToUpdate[key] = value;
       }
     }
