@@ -4,10 +4,12 @@ import React, { Suspense, useRef, useState, useEffect, forwardRef, useImperative
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { OdontogramState, Condition } from '@/lib/types';
+import { OdontogramState, Condition, Patient } from '@/lib/types';
 import { conditions as initialConditions } from './conditions-data';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { generateDetailedOdontogramPDF } from './detailed-odontogram-print';
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 // --- Funciones de Ayuda ---
 
@@ -73,13 +75,20 @@ interface ToothProps {
   conditions: OdontogramState[keyof OdontogramState];
   onClick: (toothNumber: number) => void;
   onHover: (toothNumber: number | null) => void;
+  onCreated: (tooth: THREE.Group) => void;
 }
 
 const toothMaterial = new THREE.MeshStandardMaterial({ color: '#f0f0f0', roughness: 0.9, metalness: 0.1 });
 const hoverMaterial = new THREE.MeshStandardMaterial({ color: '#a7c7e7', roughness: 0.9, metalness: 0.1 });
 
-function Tooth({ number, position, scale = 1, conditions, onClick, onHover }: ToothProps) {
+function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCreated }: ToothProps) {
     const groupRef = useRef<THREE.Group>(null!);
+    useEffect(() => {
+      if (groupRef.current) {
+        onCreated(groupRef.current);
+      }
+    }, [onCreated]);
+
     const [isHovered, setIsHovered] = useState(false);
     
     const crownHeight = 1.2;
@@ -131,7 +140,7 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover }: To
     );
 }
 
-function SceneContent({ onToothClick, onToothHover, toothState }: any) {
+function SceneContent({ onToothClick, onToothHover, toothState, onToothCreated }: any) {
     const teethLayout = useMemo(() => [
         { nums: [18, 17, 16, 15, 14, 13, 12, 11], xStart: -16.5, z: 8, spacing: 2.1 },
         { nums: [21, 22, 23, 24, 25, 26, 27, 28], xStart: 2.1, z: 8, spacing: 2.1 },
@@ -159,6 +168,7 @@ function SceneContent({ onToothClick, onToothHover, toothState }: any) {
                         conditions={toothState[num]}
                         onClick={onToothClick}
                         onHover={onToothHover}
+                        onCreated={(tooth) => onToothCreated(num, tooth)}
                     />
                 ))
             )}
@@ -166,11 +176,16 @@ function SceneContent({ onToothClick, onToothHover, toothState }: any) {
     );
 }
 
-export interface Odontograma3DRef { generateDetailedPdf: (patient: any) => Promise<void>; }
-interface Odontograma3DProps { 
+export interface Odontograma3DRef {
+  generateDetailedPdf: (patient: Patient, notes: string) => Promise<void>;
+  getOdontogramState: () => OdontogramState;
+  captureScreenshot: () => Promise<string | undefined>;
+}
+
+interface Odontograma3DProps {
     initialState: OdontogramState;
     onStateChange?: (newState: OdontogramState) => void;
-    isInteractive?: boolean; 
+    isInteractive?: boolean;
 }
 
 const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initialState, onStateChange, isInteractive = true }, ref) => {
@@ -180,6 +195,10 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
     const [hoveredTooth, setHoveredTooth] = useState<number | null>(null);
     const [isLegendCollapsed, setLegendCollapsed] = useState(true);
     const [isSectionsCollapsed, setSectionsCollapsed] = useState(false);
+    const canvasRef = useRef<HTMLCanvasElement>();
+    const cameraRef = useRef<THREE.PerspectiveCamera>();
+    const controlsRef = useRef<OrbitControlsImpl>(null);
+    const toothRefs = useRef<{[key: number]: THREE.Group}>({});
 
     useEffect(() => { onStateChange?.(toothConditions); }, [toothConditions, onStateChange]);
 
@@ -203,8 +222,57 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
             return newState;
         });
     };
+    
+    const captureCanvas = () => new Promise<string>((resolve) => {
+        setTimeout(() => {
+            if (canvasRef.current) {
+                resolve(canvasRef.current.toDataURL('image/png'));
+            } else {
+                resolve('');
+            }
+        }, 100); // Wait for render
+    });
 
-    useImperativeHandle(ref, () => ({ generateDetailedPdf: async () => console.log("PDF generation not fully implemented") }));
+    useImperativeHandle(ref, () => ({
+      getOdontogramState: () => toothConditions,
+      captureScreenshot: async () => {
+        if (controlsRef.current) {
+            controlsRef.current.reset();
+        }
+        return captureCanvas();
+      },
+      generateDetailedPdf: async (patient: Patient, generalNotes: string) => {
+        const teethWithFindings = Object.entries(toothConditions).filter(([_, sections]) =>
+            Object.values(sections).some(data => data.condition.condition !== 'Sano')
+        ).map(([toothNumber, _]) => parseInt(toothNumber));
+
+        const toothScreenshots: { [key: number]: string } = {};
+        if (controlsRef.current && cameraRef.current) {
+            const initialCameraPosition = cameraRef.current.position.clone();
+            const initialTarget = controlsRef.current.target.clone();
+
+            for (const toothNumber of teethWithFindings) {
+                const toothMesh = toothRefs.current[toothNumber];
+                if (toothMesh) {
+                    const toothPosition = new THREE.Vector3();
+                    toothMesh.getWorldPosition(toothPosition);
+                    controlsRef.current.target.copy(toothPosition);
+                    cameraRef.current.position.set(toothPosition.x, toothPosition.y + 2, toothPosition.z + 8); // Adjust camera Z for zoom
+                    controlsRef.current.update();
+                    toothScreenshots[toothNumber] = await captureCanvas();
+                }
+            }
+            
+            // Reset camera and controls to original state
+            cameraRef.current.position.copy(initialCameraPosition);
+            controlsRef.current.target.copy(initialTarget);
+            controlsRef.current.update();
+        }
+        
+        const mainScreenshot = await captureCanvas();
+        await generateDetailedOdontogramPDF(patient, toothConditions, generalNotes, mainScreenshot, toothScreenshots);
+      },
+    }));
 
     return (
         <div className="w-full h-full relative bg-[#3B82F6]">
@@ -212,11 +280,20 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                 gl={{ preserveDrawingBuffer: true }}
                 camera={{ position: [0, 15, 30], fov: 50 }}
                 shadows
+                onCreated={({ gl, camera }) => { 
+                    canvasRef.current = gl.domElement;
+                    cameraRef.current = camera as THREE.PerspectiveCamera;
+                }}
             >
                 <Suspense fallback={null}>
-                    <SceneContent toothState={toothConditions} onToothClick={handleToothClick} onToothHover={setHoveredTooth} />
+                    <SceneContent 
+                      toothState={toothConditions} 
+                      onToothClick={handleToothClick} 
+                      onToothHover={setHoveredTooth} 
+                      onToothCreated={(num: number, tooth: THREE.Group) => toothRefs.current[num] = tooth}
+                    />
                 </Suspense>
-                <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={10} maxDistance={50} />
+                <OrbitControls ref={controlsRef} enablePan={true} enableZoom={true} enableRotate={true} minDistance={5} maxDistance={50} />
                 <Environment preset="studio" />
             </Canvas>
 

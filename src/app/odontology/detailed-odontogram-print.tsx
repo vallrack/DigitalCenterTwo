@@ -1,178 +1,238 @@
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { Patient, OdontogramState, FollowUp } from '@/lib/types';
 
-"use client";
+// Extiende la interfaz de jsPDF para incluir el plugin autoTable
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: any) => jsPDF;
+  lastAutoTable: { finalY: number };
+}
 
-import jsPDF from 'jspdf';
-import { Patient, OdontogramState } from '@/lib/types';
-import *drei from '@react-three/drei';
-
-// This is a placeholder for the actual 3D scene rendering logic
-// In a real scenario, we would pass the scene, camera, and renderer
-// to this function to generate the images.
-const render3DScene = async (toothNumber?: number): Promise<string> => {
-    // Placeholder: returns a gray box image
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 300;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, 400, 300);
-        ctx.fillStyle = '#333';
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        if (toothNumber) {
-            ctx.fillText(`Zoom on Tooth ${toothNumber}`, 200, 150);
-        } else {
-            ctx.fillText('Full Odontogram View', 200, 150);
-        }
-    }
-    return canvas.toDataURL('image/png');
-};
-
-const findConditionBySymbol = (symbol: string, section: string, conditions: any[]) => {
-    // This is a placeholder. The actual logic would be more complex,
-    // possibly involving a lookup of the sprite's properties.
-    return conditions.find(c => c.symbol === symbol && c.section === section) || { condition: 'Unknown', color: '#000000' };
-};
-
-export const generateDetailedPdf = async (
-    patient: Patient, 
-    odontogramState: OdontogramState,
-    generalNotes: string
-) => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    let yPos = 20;
-
-    // Header
-    pdf.setFillColor(102, 126, 234);
-    pdf.rect(0, 0, pageWidth, 30, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(24);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('REPORTE ODONTOLÓGICO', pageWidth / 2, 15, { align: 'center' });
-    pdf.setFontSize(12);
-    pdf.text(`Paciente: ${patient.name}`, pageWidth / 2, 23, { align: 'center' });
-
-    // Date
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(10);
-    const fecha = new Date().toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+// Función para formatear fechas
+const formatDate = (isoDate: string) => {
+    if (!isoDate) return '';
+    // Se añade un día porque al crear desde el input date, puede tomar el día anterior por la zona horaria UTC
+    const date = new Date(isoDate);
+    date.setDate(date.getDate() + 1);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
     });
-    pdf.text(`Fecha: ${fecha}`, 15, 40);
-    yPos = 50;
+  };
 
-    // General View
-    pdf.setFontSize(14);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('VISTA GENERAL', 15, yPos);
-    yPos += 5;
+// Función auxiliar para renderizar campos de texto largos con manejo de páginas
+const addTextField = (doc: jsPDFWithAutoTable, title: string, value: string | undefined, startY: number): number => {
+    let currentY = startY;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
-    // --- This is where the magic happens ---
-    // We need a way to get the *actual* rendered scene from Odontograma3D component
-    const generalImg = await render3DScene(); // Placeholder
-    pdf.addImage(generalImg, 'PNG', 15, yPos, 180, 100);
-    yPos += 110;
-    
-    // Marked teeth
-    const markedTeeth = Object.entries(odontogramState).filter(
-        ([_, sections]) => Object.keys(sections).length > 0
-    );
+    const text = doc.splitTextToSize(value || 'No reporta', pageWidth - margin * 2 - 5);
+    const textHeight = text.length * 5;
+    const requiredHeight = 12 + textHeight;
 
-    if (markedTeeth.length > 0) {
-        pdf.addPage();
-        yPos = 20;
-        
-        pdf.setFillColor(241, 196, 15);
-        pdf.rect(0, 0, pageWidth, 15, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(16);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('DIENTES CON HALLAZGOS - VISTA DETALLADA', pageWidth / 2, 10, { align: 'center' });
-        yPos = 25;
+    if (currentY + requiredHeight > pageHeight - margin) {
+        doc.addPage();
+        currentY = margin;
+    }
 
-        for (const [toothNum, sections] of markedTeeth) {
-            if (yPos > pageHeight - 80) {
-                pdf.addPage();
-                yPos = 20;
-            }
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text(`${title}:`, margin, currentY);
+    currentY += 6;
 
-            // Tooth Title
-            pdf.setFillColor(52, 152, 219);
-            pdf.rect(15, yPos - 5, pageWidth - 30, 10, 'F');
-            pdf.setTextColor(255, 255, 255);
-            pdf.setFontSize(12);
-            pdf.setFont(undefined, 'bold');
-            pdf.text(`DIENTE #${toothNum}`, 20, yPos + 2);
-            yPos += 12;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(text, margin + 5, currentY);
+    currentY += textHeight + 6;
 
-            // --- Capture detailed view ---
-            const toothImg = await render3DScene(parseInt(toothNum)); // Placeholder
-            if (toothImg) {
-                pdf.addImage(toothImg, 'PNG', 15, yPos, 80, 60);
-            }
+    return currentY;
+};
 
-            // Findings Table
-            pdf.setTextColor(0, 0, 0);
-            pdf.setFontSize(10);
-            
-            let tableY = yPos;
-            const tableX = 100;
-            
-            pdf.setFont(undefined, 'bold');
-            pdf.text('SECCIÓN', tableX, tableY);
-            pdf.text('CONDICIÓN', tableX + 40, tableY);
-            tableY += 5;
-            pdf.setDrawColor(200, 200, 200);
-            pdf.line(tableX, tableY, tableX + 90, tableY);
-            tableY += 5;
-            pdf.setFont(undefined, 'normal');
+export const generateDetailedOdontogramPDF = async (
+  patient: Patient,
+  odontogramState: OdontogramState,
+  generalNotes: string,
+  mainScreenshot: string, 
+  toothScreenshots: { [key: number]: string } 
+) => {
+  const doc = new jsPDF() as jsPDFWithAutoTable;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let lastY = 15;
 
-            // This needs the full conditions list
-            const conditions: any[] = []; // Placeholder for actual conditions
+  // 1. Título y Fecha
+  doc.setFontSize(20);
+  doc.text('Historia Clínica Odontológica Detallada', pageWidth / 2, lastY, { align: 'center' });
+  lastY += 10;
+  doc.setFontSize(12);
+  doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, pageWidth - 15, lastY, { align: 'right' });
+  lastY += 15;
 
-            for (const [section, conditionSymbol] of Object.entries(sections)) {
-                const conditionDetails = findConditionBySymbol(conditionSymbol as string, section, conditions);
-                
-                pdf.text(section.charAt(0).toUpperCase() + section.slice(1), tableX, tableY);
-                pdf.setTextColor(conditionDetails.color);
-                pdf.text(conditionDetails.condition, tableX + 40, tableY);
-                pdf.setTextColor(0, 0, 0);
-                tableY += 6;
-            }
-            
-            yPos += 70;
+  // 2. Información del Paciente
+  doc.setFontSize(16);
+  doc.text('1. Datos del Paciente', 15, lastY);
+  lastY += 8;
+
+  const patientData = [
+    ['Nombre Completo', patient.name],
+    ['Número de Identificación', patient.identificationNumber],
+    ['Edad', patient.age ? `${patient.age} años` : 'No especificada'],
+    ['Género', patient.gender || 'No especificado'],
+    ['Teléfono', patient.phone || 'No especificado'],
+    ['Email', patient.email || 'No especificado'],
+    ['Dirección', patient.address || 'No especificada'],
+    ['Departamento', patient.department || 'No especificado'],
+    ['Municipio', patient.municipality || 'No especificado'],
+  ];
+
+  doc.autoTable({
+    startY: lastY,
+    head: [['Campo', 'Valor']],
+    body: patientData,
+    theme: 'grid',
+    headStyles: { fillColor: [41, 128, 185] },
+    styles: { fontSize: 10 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+  });
+  lastY = doc.lastAutoTable.finalY + 10;
+
+  // 3. Anamnesis y Antecedentes Médicos
+  if (lastY > 250) { doc.addPage(); lastY = 15; }
+  doc.setFontSize(16);
+  doc.text('2. Anamnesis y Antecedentes Médicos', 15, lastY);
+  lastY += 8;
+
+  lastY = addTextField(doc, 'Alergias', patient.allergies, lastY);
+  lastY = addTextField(doc, 'Medicamentos Actuales', patient.currentMedications, lastY);
+  lastY = addTextField(doc, 'Enfermedades Crónicas', patient.chronicDiseases, lastY);
+  lastY = addTextField(doc, 'Antecedentes Quirúrgicos', patient.surgeries, lastY);
+  lastY = addTextField(doc, 'Hábitos', patient.habits, lastY);
+  lastY += 5;
+
+  // 4. Notas de la Consulta Inicial
+  lastY = addTextField(doc, '3. Notas de la Consulta Inicial', generalNotes, lastY);
+  lastY += 5;
+
+  // 5. Controles y Seguimiento
+  if (lastY > 260) { doc.addPage(); lastY = 15; }
+  doc.setFontSize(16);
+  doc.text('4. Controles y Seguimiento', 15, lastY);
+  lastY += 8;
+
+  if (patient.followUps && patient.followUps.length > 0) {
+    const sortedFollowUps = [...patient.followUps].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    for (const followUp of sortedFollowUps) {
+      lastY = addTextField(doc, `Fecha del Control: ${formatDate(followUp.date)}`, followUp.notes, lastY);
+    }
+  } else {
+    doc.setFontSize(10);
+    doc.text('No se han registrado controles de seguimiento.', 15, lastY);
+    lastY += 10;
+  }
+  
+  // 6. Odontograma General
+  const imgHeightEstimated = 100;
+  if (lastY + imgHeightEstimated > doc.internal.pageSize.getHeight()) {
+    doc.addPage();
+    lastY = 15;
+  }
+  doc.setFontSize(16);
+  doc.text('5. Odontograma 3D General', 15, lastY);
+  lastY += 8;
+  if (mainScreenshot) {
+    try {
+      const imgProps = doc.getImageProperties(mainScreenshot);
+      const imgWidth = 180;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      doc.addImage(mainScreenshot, 'PNG', 15, lastY, imgWidth, imgHeight);
+      lastY += imgHeight + 10;
+    } catch (e) {
+      console.error("Error adding main image to PDF:", e);
+      doc.text("No se pudo cargar la imagen del odontograma.", 15, lastY);
+      lastY += 10;
+    }
+  }
+  
+  // 7. Sección de Dientes con Hallazgos
+  const teethWithFindings = Object.entries(odontogramState).filter(([_, sections]) =>
+    Object.values(sections).some(data => data.condition.condition !== 'Sano')
+  );
+
+  if (teethWithFindings.length > 0) {
+    doc.addPage();
+    let currentY = 15;
+
+    doc.setFillColor(243, 190, 50);
+    doc.rect(10, currentY, pageWidth - 20, 12, 'F');
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('6. DETALLE DE HALLAZGOS POR DIENTE', pageWidth / 2, currentY + 8, { align: 'center' });
+    currentY += 22;
+
+    for (const [toothNumber, sections] of teethWithFindings) {
+      const findingsForTooth = Object.entries(sections).filter(([_, data]) => data.condition.condition !== 'Sano');
+      if (findingsForTooth.length === 0) continue;
+      
+      const sectionHeight = 85;
+      if (currentY + sectionHeight > doc.internal.pageSize.getHeight()) {
+        doc.addPage();
+        currentY = 15;
+      }
+
+      doc.setFillColor(41, 128, 185);
+      doc.rect(15, currentY, pageWidth - 30, 10, 'F');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`DIENTE #${toothNumber}`, 20, currentY + 7);
+      currentY += 15;
+
+      const imgX = 20;
+      const imgY = currentY;
+      const imgWidth = 70;
+      const imgHeight = 55;
+      const toothScreenshot = toothScreenshots[toothNumber as any];
+      if (toothScreenshot) {
+        try {
+          doc.addImage(toothScreenshot, 'PNG', imgX, imgY, imgWidth, imgHeight);
+        } catch (e) {
+          console.error(`Error adding image for tooth ${toothNumber}:`, e);
+          doc.text('Error de imagen', imgX, imgY + 10);
         }
-    }
-    
-    // Notes
-    if (generalNotes) {
-        if (yPos > pageHeight - 50) {
-            pdf.addPage();
-            yPos = 20;
+      } else {
+          doc.text('No hay imagen individual.', imgX, imgY + 10);
+      }
+
+      const tableX = imgX + imgWidth + 10;
+      const tableData = findingsForTooth.map(([section, data]) => ({
+        section: section.charAt(0).toUpperCase() + section.slice(1),
+        condition: data.condition.condition,
+        color: data.condition.color,
+      }));
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['SECCIÓN', 'CONDICIÓN']],
+        body: tableData.map(d => [d.section, d.condition]),
+        theme: 'grid',
+        tableWidth: pageWidth - tableX - 15,
+        margin: { left: tableX },
+        headStyles: { fillColor: false, textColor: 0, lineWidth: 0.2,lineColor: 150 },
+        styles: { cellPadding: 2, fontSize: 10, lineColor: 150 },
+        didParseCell: (data) => {
+          if (data.column.index === 1) { 
+            const rowData = tableData[data.row.index];
+            if (rowData) {
+              data.cell.styles.textColor = rowData.color; 
+            }
+          }
         }
-        pdf.setFontSize(14);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('NOTAS DE LA CONSULTA', 15, yPos);
-        yPos += 8;
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
-        const notes = pdf.splitTextToSize(generalNotes, pageWidth - 30);
-        pdf.text(notes, 15, yPos);
-    }
+      });
 
-    // Footer
-    const totalPages = (pdf as any).internal.pages.length - 1;
-    for (let i = 1; i <= totalPages + 1; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(150, 150, 150);
-        pdf.text(`Página ${i} de ${totalPages + 1}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      const tableBottomY = doc.lastAutoTable.finalY;
+      const imageBottomY = imgY + imgHeight;
+      currentY = Math.max(tableBottomY, imageBottomY) + 15;
     }
+  }
 
-    pdf.save(`Odontograma_${patient.name.replace(/ /g, '_')}_${fecha.replace(/ /g, '_')}.pdf`);
+  // Guardar el PDF
+  doc.save(`Historia_Clinica_${patient.name.replace(/ /g, '_')}.pdf`);
 };

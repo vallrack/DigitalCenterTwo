@@ -66,23 +66,25 @@ export type ThemeColors = {
 
 // --- Odontology Module Types ---
 
-export type OdontogramCondition =
-  | 'sano'
-  | 'caries'
-  | 'restauracion'
-  | 'ausente'
-  | 'extraccion'
-  | 'corona'
-  | 'implante'
-  | 'sellante';
-
-export type ToothState = {
-  status: OdontogramCondition;
-  condition?: string;
+export type Condition = {
+  condition: string;
+  symbol: string;
+  type: 'text' | 'circle';
+  color: string;
 };
 
 export type OdontogramState = {
-  [toothId: string]: ToothState;
+  [toothId: string]: {
+      [section: string]: {
+          condition: Condition;
+      };
+  };
+};
+
+export type FollowUp = {
+  id: string;
+  date: string; // ISO 8601 format
+  notes: string;
 };
 
 export type Patient = {
@@ -93,6 +95,7 @@ export type Patient = {
   gender: 'Masculino' | 'Femenino' | 'Otro';
   phone?: string;
   email?: string;
+  address?: string;
   department?: string;
   municipality?: string;
 
@@ -106,8 +109,9 @@ export type Patient = {
   // Odontology specific
   odontogramState?: OdontogramState;
   generalNotes?: string;
-  odontogramScreenshot?: string; // Add this line
-  
+  odontogramScreenshot?: string;
+  followUps?: FollowUp[];
+
   organizationId: string;
   createdAt?: any;
   updatedAt?: any;
