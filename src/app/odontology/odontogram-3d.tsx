@@ -95,7 +95,7 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCr
     const rootHeight = 0.8;
     const radius = 0.5;
 
-    const SIDES = { 
+    const SIDES = {
         vestibular: { pos: [0, 0.4, 0.55], rot: [0, 0, 0] },
         lingual:    { pos: [0, 0.4, -0.55], rot: [0, Math.PI, 0] },
         mesial:     { pos: [-0.6, 0.4, 0], rot: [0, -Math.PI / 2, 0] },
@@ -230,7 +230,7 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
             } else {
                 resolve('');
             }
-        }, 100); // Wait for render
+        }, 150); // Increased timeout for complex renders
     });
 
     useImperativeHandle(ref, () => ({
@@ -254,19 +254,48 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
             for (const toothNumber of teethWithFindings) {
                 const toothMesh = toothRefs.current[toothNumber];
                 if (toothMesh) {
+                    // --- SMART CAMERA LOGIC --- //
+                    const findingsOnTooth = toothConditions[toothNumber];
+                    const sectionsWithFindings = Object.keys(findingsOnTooth || {}).filter(
+                        section => findingsOnTooth[section]?.condition?.condition !== 'Sano'
+                    );
+
+                    const cameraViews = {
+                        oclusal:    { pos: new THREE.Vector3(0, 8, 0.1) }, 
+                        lingual:    { pos: new THREE.Vector3(0, 2, -8) },  
+                        mesial:     { pos: new THREE.Vector3(-8, 2, 0) },  
+                        distal:     { pos: new THREE.Vector3(8, 2, 0) },   
+                        vestibular: { pos: new THREE.Vector3(0, 2, 8) }, 
+                    };
+
+                    const viewPriority = ['oclusal', 'lingual', 'mesial', 'distal', 'vestibular'];
+                    
+                    let bestView = 'vestibular';
+                    for (const view of viewPriority) {
+                        if (sectionsWithFindings.includes(view)) {
+                            bestView = view;
+                            break;
+                        }
+                    }
+
                     const toothPosition = new THREE.Vector3();
                     toothMesh.getWorldPosition(toothPosition);
+                    
+                    const cameraOffset = cameraViews[bestView as keyof typeof cameraViews].pos;
+                    
+                    cameraRef.current.position.copy(toothPosition).add(cameraOffset);
                     controlsRef.current.target.copy(toothPosition);
-                    cameraRef.current.position.set(toothPosition.x, toothPosition.y + 2, toothPosition.z + 8); // Adjust camera Z for zoom
                     controlsRef.current.update();
+                    
                     toothScreenshots[toothNumber] = await captureCanvas();
                 }
             }
             
-            // Reset camera and controls to original state
+            // Reset camera to general view before taking the main screenshot
             cameraRef.current.position.copy(initialCameraPosition);
             controlsRef.current.target.copy(initialTarget);
             controlsRef.current.update();
+            await new Promise(resolve => setTimeout(resolve, 100)); // wait for reset to render
         }
         
         const mainScreenshot = await captureCanvas();
