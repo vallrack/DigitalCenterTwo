@@ -132,7 +132,7 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCr
                 return (
                     <mesh key={section} position={side.pos as [number,number,number]} rotation={side.rot as [number,number,number]}>
                         <planeGeometry args={[0.9, 0.9]} />
-                        <meshStandardMaterial map={texture} transparent={true} />
+                        <meshStandardMaterial map={texture} transparent={true} side={THREE.DoubleSide} />
                     </mesh>
                 );
             })}
@@ -230,7 +230,7 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
             } else {
                 resolve('');
             }
-        }, 150); // Increased timeout for complex renders
+        }, 150);
     });
 
     useImperativeHandle(ref, () => ({
@@ -254,17 +254,17 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
             for (const toothNumber of teethWithFindings) {
                 const toothMesh = toothRefs.current[toothNumber];
                 if (toothMesh) {
-                    // --- SMART CAMERA LOGIC --- //
                     const findingsOnTooth = toothConditions[toothNumber];
                     const sectionsWithFindings = Object.keys(findingsOnTooth || {}).filter(
                         section => findingsOnTooth[section]?.condition?.condition !== 'Sano'
                     );
 
+                    // --- SMART CAMERA LOGIC --- //
                     const cameraViews = {
                         oclusal:    { pos: new THREE.Vector3(0, 8, 0.1) }, 
                         lingual:    { pos: new THREE.Vector3(0, 2, -8) },  
-                        mesial:     { pos: new THREE.Vector3(-8, 2, 0) },  
-                        distal:     { pos: new THREE.Vector3(8, 2, 0) },   
+                        mesial:     { pos: new THREE.Vector3(-6, 2, 6) },  // Angled for clear view
+                        distal:     { pos: new THREE.Vector3(6, 2, 6) },   // Angled for clear view
                         vestibular: { pos: new THREE.Vector3(0, 2, 8) }, 
                     };
 
@@ -287,15 +287,15 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                     controlsRef.current.target.copy(toothPosition);
                     controlsRef.current.update();
                     
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for camera to update
                     toothScreenshots[toothNumber] = await captureCanvas();
                 }
             }
             
-            // Reset camera to general view before taking the main screenshot
             cameraRef.current.position.copy(initialCameraPosition);
             controlsRef.current.target.copy(initialTarget);
             controlsRef.current.update();
-            await new Promise(resolve => setTimeout(resolve, 100)); // wait for reset to render
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         const mainScreenshot = await captureCanvas();
