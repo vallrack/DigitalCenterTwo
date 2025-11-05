@@ -91,16 +91,16 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCr
 
     const [isHovered, setIsHovered] = useState(false);
     
-    const crownHeight = 1.2;
-    const rootHeight = 0.8;
-    const radius = 0.5;
+    const crownHeight = 1.0;
+    const rootHeight = 1.2;
+    const crownSize = 0.7; // Radio para el cono y lado para el cubo
 
     const SIDES = {
-        vestibular: { pos: [0, 0.4, 0.55], rot: [0, 0, 0] },
-        lingual:    { pos: [0, 0.4, -0.55], rot: [0, Math.PI, 0] },
-        mesial:     { pos: [-0.6, 0.4, 0], rot: [0, -Math.PI / 2, 0] },
-        distal:     { pos: [0.6, 0.4, 0], rot: [0, Math.PI / 2, 0] },
-        oclusal:    { pos: [0, crownHeight, 0], rot: [-Math.PI / 2, 0, 0] }
+        vestibular: { pos: [0, crownHeight / 2, crownSize], rot: [0, 0, 0] },
+        lingual:    { pos: [0, crownHeight / 2, -crownSize], rot: [0, Math.PI, 0] },
+        mesial:     { pos: [-crownSize, crownHeight / 2, 0], rot: [0, -Math.PI / 2, 0] },
+        distal:     { pos: [crownSize, crownHeight / 2, 0], rot: [0, Math.PI / 2, 0] },
+        oclusal:    { pos: [0, crownHeight + 0.01, 0], rot: [-Math.PI / 2, 0, 0] }
     };
 
     return (
@@ -114,14 +114,14 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCr
         >
             <group>
                 <mesh material={isHovered ? hoverMaterial : toothMaterial} position={[0, crownHeight / 2, 0]}>
-                    <cylinderGeometry args={[radius, radius, crownHeight, 32]} />
+                    <boxGeometry args={[crownSize * 2, crownHeight, crownSize * 2]} />
                 </mesh>
                 <mesh material={isHovered ? hoverMaterial : toothMaterial} position={[0, -rootHeight / 2, 0]}>
-                    <coneGeometry args={[radius, rootHeight, 32]} />
+                    <coneGeometry args={[crownSize, rootHeight, 32]} />
                 </mesh>
             </group>
 
-            <Text position={[0, crownHeight + 0.6, 0]} fontSize={0.6} color="#000000" anchorX="center" anchorY="middle">
+            <Text position={[0, crownHeight + 0.8, 0]} fontSize={0.6} color="#000000" anchorX="center" anchorY="middle">
                 {String(number)}
             </Text>
 
@@ -129,9 +129,11 @@ function Tooth({ number, position, scale = 1, conditions, onClick, onHover, onCr
                 if (!data.condition || !SIDES[section as keyof typeof SIDES]) return null;
                 const texture = createToothSymbolTexture(data.condition);
                 const side = SIDES[section as keyof typeof SIDES];
+                const planeSize = section === 'oclusal' ? crownSize * 2 : Math.max(crownHeight, crownSize * 2);
+
                 return (
                     <mesh key={section} position={side.pos as [number,number,number]} rotation={side.rot as [number,number,number]}>
-                        <planeGeometry args={[0.9, 0.9]} />
+                        <planeGeometry args={[planeSize * 0.9, planeSize * 0.9]} />
                         <meshStandardMaterial map={texture} transparent={true} side={THREE.DoubleSide} />
                     </mesh>
                 );
@@ -144,16 +146,16 @@ function SceneContent({ onToothClick, onToothHover, toothState, onToothCreated }
     const teethLayout = useMemo(() => [
         { nums: [18, 17, 16, 15, 14, 13, 12, 11], xStart: -16.5, z: 8, spacing: 2.1 },
         { nums: [21, 22, 23, 24, 25, 26, 27, 28], xStart: 2.1, z: 8, spacing: 2.1 },
-        { nums: [55, 54, 53, 52, 51], xStart: -8, z: 3.5, scale: 0.7, spacing: 1.8 },
-        { nums: [61, 62, 63, 64, 65], xStart: 2, z: 3.5, scale: 0.7, spacing: 1.8 },
-        { nums: [85, 84, 83, 82, 81], xStart: -8, z: -0.5, scale: 0.7, spacing: 1.8 },
-        { nums: [71, 72, 73, 74, 75], xStart: 2, z: -0.5, scale: 0.7, spacing: 1.8 },
+        { nums: [55, 54, 53, 52, 51], xStart: -8, z: 3.5, scale: 0.8, spacing: 1.8 },
+        { nums: [61, 62, 63, 64, 65], xStart: 2, z: 3.5, scale: 0.8, spacing: 1.8 },
+        { nums: [85, 84, 83, 82, 81], xStart: -8, z: -0.5, scale: 0.8, spacing: 1.8 },
+        { nums: [71, 72, 73, 74, 75], xStart: 2, z: -0.5, scale: 0.8, spacing: 1.8 },
         { nums: [48, 47, 46, 45, 44, 43, 42, 41], xStart: -16.5, z: -5.5, spacing: 2.1 },
         { nums: [31, 32, 33, 34, 35, 36, 37, 38], xStart: 2.1, z: -5.5, spacing: 2.1 },
     ], []);
 
     return (
-        <group rotation={[-Math.PI / 10, 0, 0]}>
+        <group>
             <ambientLight intensity={1.5} />
             <directionalLight position={[5, 15, 10]} intensity={2.0} />
             <directionalLight position={[-5, 15, -10]} intensity={1.5} />
@@ -188,10 +190,13 @@ interface Odontograma3DProps {
     isInteractive?: boolean;
 }
 
+const ALL_SECTIONS = ['vestibular', 'lingual', 'mesial', 'distal', 'oclusal'];
+
 const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initialState, onStateChange, isInteractive = true }, ref) => {
     const [toothConditions, setToothConditions] = useState<OdontogramState>(initialState);
     const [selectedSymbol, setSelectedSymbol] = useState<Condition | null>(initialConditions.find(c => c.condition === 'Sano') || null);
-    const [selectedSection, setSelectedSection] = useState('vestibular');
+    const [selectedSections, setSelectedSections] = useState<string[]>(['oclusal']);
+    const [isBorrarActive, setBorrarActive] = useState(false);
     const [hoveredTooth, setHoveredTooth] = useState<number | null>(null);
     const [isLegendCollapsed, setLegendCollapsed] = useState(true);
     const [isSectionsCollapsed, setSectionsCollapsed] = useState(false);
@@ -202,22 +207,49 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
 
     useEffect(() => { onStateChange?.(toothConditions); }, [toothConditions, onStateChange]);
 
+    const handleSectionToggle = (section: string) => {
+        setBorrarActive(false);
+        setSelectedSections(prev => 
+            prev.includes(section) 
+                ? prev.filter(s => s !== section) 
+                : [...prev, section]
+        );
+    };
+
+    const handleSelectAll = () => {
+        setBorrarActive(false);
+        if (selectedSections.length === ALL_SECTIONS.length) {
+            setSelectedSections([]);
+        } else {
+            setSelectedSections(ALL_SECTIONS);
+        }
+    };
+
     const handleToothClick = (toothNumber: number) => {
         if (!isInteractive) return;
+        
         setToothConditions(prev => {
             const newState = JSON.parse(JSON.stringify(prev));
             if (!newState[toothNumber]) newState[toothNumber] = {};
-            if (selectedSection === 'borrar') {
-                if (newState[toothNumber]) {
+
+            if (isBorrarActive) {
+                selectedSections.forEach(section => {
+                    if (newState[toothNumber][section]) {
+                        delete newState[toothNumber][section];
+                    }
+                });
+                if (Object.keys(newState[toothNumber]).length === 0) {
                     delete newState[toothNumber];
                 }
-            } else if (selectedSymbol) {
-                const isAlreadyApplied = newState[toothNumber][selectedSection]?.condition.symbol === selectedSymbol.symbol;
-                if (isAlreadyApplied) {
-                    delete newState[toothNumber][selectedSection];
-                } else {
-                    newState[toothNumber][selectedSection] = { condition: selectedSymbol };
-                }
+            } else if (selectedSymbol && selectedSections.length > 0) {
+                 selectedSections.forEach(section => {
+                    const isAlreadyApplied = newState[toothNumber][section]?.condition.symbol === selectedSymbol.symbol;
+                    if (isAlreadyApplied) {
+                        delete newState[toothNumber][section];
+                    } else {
+                        newState[toothNumber][section] = { condition: selectedSymbol };
+                    }
+                });
             }
             return newState;
         });
@@ -259,12 +291,11 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                         section => findingsOnTooth[section]?.condition?.condition !== 'Sano'
                     );
 
-                    // --- SMART CAMERA LOGIC --- //
                     const cameraViews = {
                         oclusal:    { pos: new THREE.Vector3(0, 8, 0.1) }, 
                         lingual:    { pos: new THREE.Vector3(0, 2, -8) },  
-                        mesial:     { pos: new THREE.Vector3(-6, 2, 6) },  // Angled for clear view
-                        distal:     { pos: new THREE.Vector3(6, 2, 6) },   // Angled for clear view
+                        mesial:     { pos: new THREE.Vector3(-6, 2, 6) },
+                        distal:     { pos: new THREE.Vector3(6, 2, 6) },
                         vestibular: { pos: new THREE.Vector3(0, 2, 8) }, 
                     };
 
@@ -287,7 +318,7 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                     controlsRef.current.target.copy(toothPosition);
                     controlsRef.current.update();
                     
-                    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for camera to update
+                    await new Promise(resolve => setTimeout(resolve, 100));
                     toothScreenshots[toothNumber] = await captureCanvas();
                 }
             }
@@ -307,7 +338,7 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
         <div className="w-full h-full relative bg-[#3B82F6]">
             <Canvas
                 gl={{ preserveDrawingBuffer: true }}
-                camera={{ position: [0, 15, 30], fov: 50 }}
+                camera={{ position: [0, 35, 5], fov: 55 }}
                 shadows
                 onCreated={({ gl, camera }) => { 
                     canvasRef.current = gl.domElement;
@@ -322,33 +353,39 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                       onToothCreated={(num: number, tooth: THREE.Group) => toothRefs.current[num] = tooth}
                     />
                 </Suspense>
-                <OrbitControls ref={controlsRef} enablePan={true} enableZoom={true} enableRotate={true} minDistance={5} maxDistance={50} />
+                <OrbitControls ref={controlsRef} enablePan={true} enableZoom={true} enableRotate={true} minDistance={5} maxDistance={60} />
                 <Environment preset="studio" />
             </Canvas>
 
             {isInteractive && (
                 <div className="absolute inset-0 pointer-events-none">
                     <Panel title="ODONTOGRAMA 3D" position="top-3 left-3" isCollapsed={false} onToggle={() => {}}>
-                         <p>Sección: <strong className="font-semibold text-blue-600 dark:text-blue-400">{selectedSection === 'borrar' ? <span className="text-red-500">BORRAR</span> : selectedSection}</strong></p>
+                         <p>Sección: <strong className="font-semibold text-blue-600 dark:text-blue-400 capitalize">{isBorrarActive ? <span className="text-red-500">BORRAR</span> : selectedSections.join(', ') || 'Ninguna'}</strong></p>
                          <p>Símbolo: <strong className="font-semibold text-blue-600 dark:text-blue-400">{selectedSymbol?.condition || 'Ninguno'}</strong></p>
                          <p>Diente: <strong className="font-semibold text-blue-600 dark:text-blue-400">{hoveredTooth || 'Ninguno'}</strong></p>
                     </Panel>
 
-                    <Panel title="SECCIONES" position="bottom-3 left-3" isCollapsed={isSectionsCollapsed} onToggle={() => setSectionsCollapsed(v => !v)}>
+                    <Panel title="SECCIONES (MÚLTIPLE)" position="bottom-3 left-3" isCollapsed={isSectionsCollapsed} onToggle={() => setSectionsCollapsed(v => !v)}>
                         <div className="flex flex-col gap-2">
-                            {['vestibular', 'lingual', 'mesial', 'distal', 'oclusal'].map(s => (
-                                <button key={s} onClick={() => setSelectedSection(s)} className={cn(
+                            <button onClick={handleSelectAll} className={cn(
+                                "pointer-events-auto w-full text-left p-2 text-sm rounded-md transition-colors mb-2 font-semibold",
+                                selectedSections.length === ALL_SECTIONS.length ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+                            )}>
+                                Seleccionar Todas
+                            </button>
+                            {ALL_SECTIONS.map(s => (
+                                <button key={s} onClick={() => handleSectionToggle(s)} className={cn(
                                     "pointer-events-auto w-full text-left p-2 text-sm rounded-md transition-colors",
-                                    selectedSection === s ? 'bg-blue-500 text-white shadow-md' : 'bg-white/80 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-blue-800'
+                                    selectedSections.includes(s) ? 'bg-blue-500 text-white shadow-md' : 'bg-white/80 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-blue-800'
                                 )}>
                                     {s.charAt(0).toUpperCase() + s.slice(1)}
                                 </button>
                             ))}
-                             <button onClick={() => setSelectedSection('borrar')} className={cn(
+                             <button onClick={() => { setBorrarActive(true); setSelectedSections([]); }} className={cn(
                                 "pointer-events-auto w-full text-left p-2 text-sm rounded-md transition-colors mt-2",
-                                selectedSection === 'borrar' ? 'bg-red-500 text-white shadow-md' : 'bg-red-300/80 hover:bg-red-400 dark:bg-red-800/80 dark:hover:bg-red-700'
+                                isBorrarActive ? 'bg-red-500 text-white shadow-md' : 'bg-red-300/80 hover:bg-red-400 dark:bg-red-800/80 dark:hover:bg-red-700'
                             )}>
-                                Borrar Condición
+                                Borrar Condición (Selecciona caras y diente)
                             </button>
                         </div>
                     </Panel>
@@ -356,10 +393,10 @@ const Odontograma3D = forwardRef<Odontograma3DRef, Odontograma3DProps>(({ initia
                     <Panel title="LEYENDA" position="top-3 right-3" isCollapsed={isLegendCollapsed} onToggle={() => setLegendCollapsed(v => !v)}>
                         <div className="grid grid-cols-2 gap-2">
                             {initialConditions.map((cond, index) => (
-                                <div key={`${cond.condition}-${index}`} onClick={() => setSelectedSymbol(cond)}
+                                <div key={`${cond.condition}-${index}`} onClick={() => { setSelectedSymbol(cond); setBorrarActive(false); }}
                                     className={cn(
                                         `pointer-events-auto p-2 rounded-lg cursor-pointer border-2 flex items-center gap-2 transition-colors`,
-                                        selectedSymbol?.symbol === cond.symbol ? 'border-blue-500 bg-blue-100/80' : 'border-transparent hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
+                                        !isBorrarActive && selectedSymbol?.symbol === cond.symbol ? 'border-blue-500 bg-blue-100/80' : 'border-transparent hover:bg-gray-200/80 dark:hover:bg-gray-600/80'
                                     )}>
                                     <span style={{ color: cond.color }} className="font-bold text-lg w-5 text-center">{cond.symbol}</span>
                                     <span className="text-xs text-gray-700 dark:text-gray-300">{cond.condition}</span>
